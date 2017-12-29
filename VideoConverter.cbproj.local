@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899-12-30 00:00:00.000.693,C:\Users\Steve\Documents\RAD Studio\Projects\Unit1.h=C:\New Programming Folder\Programs\Video Converter\MainUnit.h</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.577,=C:\New Programming Folder\Programs\Video Converter\Unit1.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.471,=C:\New Programming Folder\Programs\Video Converter\Unit1.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.642,C:\New Programming Folder\Programs\Video Converter\Unit3.dfm=C:\New Programming Folder\Programs\Video Converter\OpenFolderUnit.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.966,=C:\Users\Steve\Documents\RAD Studio\Projects\Project1PCH1.h</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.707,C:\New Programming Folder\Programs\Video Converter\Unit2.h=C:\New Programming Folder\Programs\Video Converter\SettingsUnit.h</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.707,C:\New Programming Folder\Programs\Video Converter\Unit2.dfm=C:\New Programming Folder\Programs\Video Converter\SettingsUnit.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.796,=C:\New Programming Folder\Programs\Video Converter\Unit3.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.389,C:\New Programming Folder\Programs\Video Converter\Unit1.dfm=C:\New Programming Folder\Programs\Video Converter\ConvertionUnit.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.833,C:\New Programming Folder\Programs\Video Converter\Unit1.dfm=C:\New Programming Folder\Programs\Video Converter\ConvertUnit.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.642,C:\New Programming Folder\Programs\Video Converter\Unit3.cpp=C:\New Programming Folder\Programs\Video Converter\OpenFolderUnit.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.871,=C:\New Programming Folder\Programs\Video Converter\Unit1.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.389,C:\New Programming Folder\Programs\Video Converter\Unit1.cpp=C:\New Programming Folder\Programs\Video Converter\ConvertionUnit.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.833,C:\New Programming Folder\Programs\Video Converter\Unit1.cpp=C:\New Programming Folder\Programs\Video Converter\ConvertUnit.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.517,=C:\Users\Steve\Documents\RAD Studio\Projects\Project1PCH1.h</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.486,=C:\New Programming Folder\Programs\Video Converter\Unit2.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.707,C:\New Programming Folder\Programs\Video Converter\Unit2.cpp=C:\New Programming Folder\Programs\Video Converter\SettingsUnit.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.705,C:\New Programming Folder\Programs\Video Converter\ConvertionUnit.cpp=</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.172,=C:\Users\Steve\Documents\RAD Studio\Projects\Unit1.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.693,C:\Users\Steve\Documents\RAD Studio\Projects\Unit1.cpp=C:\New Programming Folder\Programs\Video Converter\MainUnit.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.984,=C:\Users\Steve\Documents\RAD Studio\Projects\Unit1.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.905,=C:\Users\Steve\Documents\RAD Studio\Projects\Unit1.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.642,C:\New Programming Folder\Programs\Video Converter\Unit3.h=C:\New Programming Folder\Programs\Video Converter\OpenFolderUnit.h</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.181,C:\Users\Steve\Documents\RAD Studio\Projects\Project1PCH1.h=C:\New Programming Folder\Programs\Video Converter\VideoConverterPCH.h</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.093,=C:\Users\Steve\Documents\RAD Studio\Projects\Project1PCH1.h</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.573,C:\Users\Steve\Documents\RAD Studio\Projects\Project1.cbproj=C:\New Programming Folder\Programs\Video Converter\VideoConverter.cbproj</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.693,C:\Users\Steve\Documents\RAD Studio\Projects\Unit1.dfm=C:\New Programming Folder\Programs\Video Converter\MainUnit.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.833,C:\New Programming Folder\Programs\Video Converter\Unit1.h=C:\New Programming Folder\Programs\Video Converter\ConvertUnit.h</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.389,C:\New Programming Folder\Programs\Video Converter\Unit1.h=C:\New Programming Folder\Programs\Video Converter\ConvertionUnit.h</Transaction>
+  </Transactions>
+</BorlandProject>

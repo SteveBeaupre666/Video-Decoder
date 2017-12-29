@@ -1,0 +1,12 @@
+EXPORTS
+	_SetMainWindow		@1
+	_SetOpenGLWindow	@2
+	_InitializeOpenGL	@3
+	_CleanupOpenGL		@4
+	_SetBgColor			@5
+	_Render				@6
+	_StartJob			@7
+	_IsJobRunning		@8	
+	_CancelJob			@9
+	_PauseJob           @10	
+	_ConvertVideo		@11

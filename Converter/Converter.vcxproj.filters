@@ -1,0 +1,112 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Project Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="CodeLib">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="ffmpeg">
+      <UniqueIdentifier>{f32cde74-fd0b-4a95-8013-80a32735d95f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OpenGL">
+      <UniqueIdentifier>{12abc778-80f5-4f0e-88bb-9b2b87267e6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Misc">
+      <UniqueIdentifier>{ae9be6df-5f15-4b38-928d-11794165b822}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Converter.cpp">
+      <Filter>Project Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CodeLib\Buffer.cpp">
+      <Filter>CodeLib</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CodeLib\FileIO.cpp">
+      <Filter>CodeLib</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CodeLib\Thread.cpp">
+      <Filter>CodeLib</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ffmpeg\FormatContext.cpp">
+      <Filter>ffmpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="source\OpenGL\Renderer.cpp">
+      <Filter>OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="source\OpenGL\TextureBuffer.cpp">
+      <Filter>OpenGL</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Misc\ColorConversion.cpp">
+      <Filter>Misc</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ffmpeg\CodecContext.cpp">
+      <Filter>ffmpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ffmpeg\Frame.cpp">
+      <Filter>ffmpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ffmpeg\Packet.cpp">
+      <Filter>ffmpeg</Filter>
+    </ClCompile>
+    <ClCompile Include="source\ffmpeg\ConvertContext.cpp">
+      <Filter>ffmpeg</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Converter.def">
+      <Filter>Project Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Converter.h">
+      <Filter>Project Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\CodeLib\Buffer.h">
+      <Filter>CodeLib</Filter>
+    </ClInclude>
+    <ClInclude Include="source\CodeLib\FileIO.h">
+      <Filter>CodeLib</Filter>
+    </ClInclude>
+    <ClInclude Include="source\CodeLib\Thread.h">
+      <Filter>CodeLib</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ffmpeg\ffmpeg.h">
+      <Filter>ffmpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ffmpeg\FormatContext.h">
+      <Filter>ffmpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="source\OpenGL\Renderer.h">
+      <Filter>OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="source\OpenGL\TextureBuffer.h">
+      <Filter>OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Misc\ColorConversion.h">
+      <Filter>Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Misc\Rectangle.h">
+      <Filter>Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Misc\SafeKill.h">
+      <Filter>Misc</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ffmpeg\CodecContext.h">
+      <Filter>ffmpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ffmpeg\Frame.h">
+      <Filter>ffmpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ffmpeg\Packet.h">
+      <Filter>ffmpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="source\ffmpeg\ConvertContext.h">
+      <Filter>ffmpeg</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
