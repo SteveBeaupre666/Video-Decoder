@@ -130,7 +130,7 @@ BOOL EXP_FUNC _IsJobRunning()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-void EXP_FUNC _CancelJob()
+void EXP_FUNC _CancelJob() // <--- could rename this to _AbortThread()
 {
 	if(Job.IsRunning())
 		Job.Abort();
@@ -138,7 +138,7 @@ void EXP_FUNC _CancelJob()
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-void EXP_FUNC _PauseJob()
+void EXP_FUNC _PauseJob() // <--- could rename this to _PauseThread()
 {
 	if(Job.IsRunning()){
 		switch(Job.IsPaused())
@@ -207,6 +207,197 @@ UINT EXP_FUNC _ConvertVideo(char *input_fname, char *output_fname)
 
 	CFileIO OutputFile;
 	CBuffer FrameBuffer;
+
+    ///////////////////////////////////////////////////////////////////////////////////////
+
+	CFrame SrcFrame;
+	CFrame DstFrame;
+
+	CPacket DecoderPacket;
+	CPacket EncoderPacket;
+
+	CVideoDecoder VideoDecoder;
+	CVideoEncoder VideoEncoder;
+	CAudioDecoder AudioDecoder;
+	CAudioEncoder AudioEncoder;
+
+    CFormatContext  FormatContext;
+    CConvertContext ConvertContext;
+
+    ///////////////////////////////////////////////////////////////////////////////////////
+
+	TEST(FormatContext.AllocContext());
+	TEST(FormatContext.OpenInput(input_fname));
+	TEST(FormatContext.FindStreamInfo());
+
+    ///////////////////////////////////////////////////////////////////////////////////////
+
+	int video_stream = FormatContext.FindVideoStream();
+	int audio_stream = FormatContext.FindAudioStream();
+	if(video_stream == INVALID_STREAM || audio_stream == INVALID_STREAM) // a fixer plus tard...
+		goto cleanup;
+
+    ///////////////////////////////////////////////////////////////////////////////////////
+
+	AVStream* stream = FormatContext.GetVideoStream();
+
+	TEST(VideoDecoder.AllocContext());
+	TEST(VideoDecoder.GetCodecFromStream(stream));
+	TEST(VideoDecoder.OpenCodec());
+
+	///////////////////////////////////////////////////////////////////////////////////////
+
+	TEST(SrcFrame.Alloc());
+	TEST(DstFrame.Alloc());
+
+	///////////////////////////////////////////////////////////////////////////////////////
+
+	TEST(VideoEncoder.FindEncoder(CODEC_ID_MPEG1VIDEO));
+	TEST(VideoEncoder.AllocContext());
+
+    ///////////////////////////////////////////////////////////////////////////////////////
+
+	// Get video settings...
+	/*
+	int src_width  = VideoDecoder->codec_ctx->width;
+	int src_height = VideoDecoder->codec_ctx->height;
+
+	int dst_width  = src_width;
+	int dst_height = src_height;
+	
+	if(src_width > 1024){
+		dst_width  = src_width  / 2;
+		dst_height = src_height / 2;
+	}
+
+	const int align = 16;
+	int width_gap  = dst_width  % align;
+	int height_gap = dst_height % align;
+	if(width_gap  != 0){dst_width  += align - width_gap;}
+	if(height_gap != 0){dst_height += align - height_gap;}
+
+	int num_pixels = dst_width * dst_height;
+	int y_size = num_pixels;
+	int u_size = num_pixels / 4;
+	int v_size = num_pixels / 4;
+
+	AVPixelFormat dst_format = AV_PIX_FMT_YUV420P;
+	AVPixelFormat src_format = VideoDecoder->codec_ctx->pix_fmt;
+	*/
+
+    ///////////////////////////////////////////////////////////////////////////////////////
+
+	//VideoEncoder.Setup();
+
+	VideoEncoder.OpenCodec();
+
+	//FrameBuffer.Allocate(y_size + u_size + v_size);
+
+	//DstFrame.SetupFrameBuffer(FrameBuffer.Get(), w, h, AV_PIX_FMT_YUV420P);
+	
+	//ConvertContext.GetContext();
+
+    ///////////////////////////////////////////////////////////////////////////////////////
+
+	DecoderPacket.Allocate();
+	EncoderPacket.Allocate();
+
+	DecoderPacket.InitPacket();
+	EncoderPacket.InitPacket();
+
+	///////////////////////////////////////////////////////////////////////////////////////
+
+	// Initialize OpenGL
+	/*
+	Renderer.CreateTexture(dst_width, dst_height, 4);
+
+	BYTE *pY = VideoDecoder->dst_frame->data[0];
+	BYTE *pU = VideoDecoder->dst_frame->data[1];
+	BYTE *pV = VideoDecoder->dst_frame->data[2];
+	*/
+
+	///////////////////////////////////////////////////////////////////////////////////////
+
+	// Create the output file
+	//if(!OutputFile.Create(output_fname))
+	//	goto cleanup;
+
+	///////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////
+
+	while(av_read_frame(FormatContext.GetCtx(), DecoderPacket.Get()) >= 0){
+
+		int stream_index = DecoderPacket.Get()->stream_index;
+		
+		//CheckThreadStatus();
+	
+		if(stream_index == video_stream){
+
+
+			int got_frame = 0;
+			int decoded = avcodec_decode_video2(VideoDecoder.GetCtx(), SrcFrame.Get(), &got_frame, DecoderPacket.Get());	
+			if(decoded < 0)
+				goto cleanup;
+
+
+			if(got_frame){
+				
+				//sws_scale(VideoDecoder->convert_ctx, VideoDecoder->src_frame->data, VideoDecoder->src_frame->linesize, 0, src_height, VideoDecoder->dst_frame->data, VideoDecoder->dst_frame->linesize);
+
+				// Render a frame
+
+				EncoderPacket.InitPacket();
+
+				int got_output = 0;
+				int encoded = avcodec_encode_video2(VideoEncoder.GetCtx(), EncoderPacket.Get(), DstFrame.Get(), &got_output);
+				if(encoded < 0)
+					goto cleanup;
+				
+				if(got_output){
+					
+					//OutputFile.Write(VideoEncoder->packet->data, VideoEncoder->packet->size);
+					
+					// Update progress
+					
+					EncoderPacket.FreePacket();
+				}
+
+			}
+
+		}
+
+		DecoderPacket.FreePacket();
+	}
+
+	///////////////////////////////////////////////////////////////////////////////////////
+
+	while(1){
+
+	}
+
+	///////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////
+
+	res = JOB_SUCCEDED;
+
+	///////////////////////////////////////////////////////////////////////////////////////
+
+cleanup:
+
+	// perform cleanup...
+
+	return res;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+/*UINT EXP_FUNC _ConvertVideo(char *input_fname, char *output_fname)
+{
+	UINT res = UNKNOW_ERROR;
+
+	CFileIO OutputFile;
+	CBuffer FrameBuffer;
+
 
 	ffmpegStruct ffmpeg;
 	ZeroMemory(&ffmpeg, sizeof(ffmpegStruct));
@@ -541,7 +732,7 @@ UINT EXP_FUNC _ConvertVideo(char *input_fname, char *output_fname)
 		Renderer.UpdateTexture(pY, pU, pV);
 		Renderer.Render();
 
-		int got_output = 0;                                                    /* i think this should NOT be commented... test last */
+		int got_output = 0;
 		int encoded = avcodec_encode_video2(VideoEncoder->codec_ctx, VideoEncoder->packet, VideoDecoder->dst_frame, &got_output);
 		if(encoded < 0)
 			goto cleanup;
@@ -587,7 +778,7 @@ cleanup:
 	#endif
 
 	return res;
-}
+}*/
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 

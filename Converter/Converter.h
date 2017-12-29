@@ -13,6 +13,10 @@
 #include "Renderer.h"
 //----------------------------------------------------------------------//
 #include "FormatContext.h"
+#include "ConvertContext.h"
+#include "CodecContext.h"
+#include "Packet.h"
+#include "Frame.h"
 //----------------------------------------------------------------------//
 #include "SafeKill.h"
 //----------------------------------------------------------------------//
@@ -27,6 +31,7 @@
 //----------------------------------------------------------------------//
 
 #define NO_AUDIO
+#define TEST(x)	if(!x){goto cleanup;}
 
 struct JobDataStruct {
 	int   NumFiles;
@@ -34,7 +39,21 @@ struct JobDataStruct {
 	char *OutputFiles;
 };
 
-struct VideoDecoderStruct {
+struct CFrameSize {
+	int w,h;
+};
+
+struct CVideoSettings {
+	
+	CFrameSize FrameWidth;
+	int FrameHeight;
+
+
+
+
+};
+
+/*struct VideoDecoderStruct {
     AVFormatContext *format_ctx;
     SwsContext      *convert_ctx;
 	AVCodec         *codec;
@@ -64,15 +83,16 @@ struct AudioEncoderStruct {
     AVPacket        *packet; 
 };
 #endif
+*/
 
-struct ffmpegStruct {
+/*struct ffmpegStruct {
 	VideoDecoderStruct VideoDecoder;
 	VideoEncoderStruct VideoEncoder;
 	#ifndef NO_AUDIO
 	AudioDecoderStruct AudioDecoder;
 	AudioEncoderStruct AudioEncoder;
 	#endif
-};
+};*/
 
 //----------------------------------------------------------------------//
 // Internal Functions
