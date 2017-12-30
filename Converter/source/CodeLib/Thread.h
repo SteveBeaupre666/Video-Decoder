@@ -29,5 +29,5 @@ public:
 
 	void Pause();
 	void Resume();
-	bool IsPaused();
+	bool Paused();
 };

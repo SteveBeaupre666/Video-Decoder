@@ -56,6 +56,9 @@
     <ClCompile Include="source\ffmpeg\ConvertContext.cpp">
       <Filter>ffmpeg</Filter>
     </ClCompile>
+    <ClCompile Include="source\Misc\FileName.cpp">
+      <Filter>Misc</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="Converter.def">
@@ -107,6 +110,9 @@
     </ClInclude>
     <ClInclude Include="source\ffmpeg\ConvertContext.h">
       <Filter>ffmpeg</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Misc\FileName.h">
+      <Filter>Misc</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

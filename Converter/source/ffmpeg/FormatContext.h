@@ -32,5 +32,7 @@ public:
 
 	AVStream* GetVideoStream();
 	AVStream* GetAudioStream();
+
+	bool ReadFrame(AVPacket* pkt);
 };
 

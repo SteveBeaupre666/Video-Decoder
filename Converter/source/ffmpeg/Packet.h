@@ -20,4 +20,6 @@ public:
 	void InitPacket(void *data = NULL, int size = 0);
 	void SetupPacket(void *data, int size);
 	void FreePacket();
+
+	int  GetStreamIndex();
 };

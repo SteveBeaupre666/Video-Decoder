@@ -26,6 +26,9 @@ bool CPacket::Allocate()
 
 	static const int AVPacketSize = sizeof(AVPacket);
 	Packet = (AVPacket*)malloc(AVPacketSize);
+	
+	if(Packet)
+		InitPacket();
 
 	return Packet != NULL;
 }
@@ -62,3 +65,10 @@ void CPacket::FreePacket()
 		av_free_packet(Packet);
 }
 
+int CPacket::GetStreamIndex()
+{
+	if(!Packet)
+		return -1;
+
+	return Packet->stream_index;
+}

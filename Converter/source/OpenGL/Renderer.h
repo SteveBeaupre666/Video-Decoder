@@ -10,6 +10,7 @@
 #include <gl\glu.h>
 #include <gl\glext.h>
 //----------------------------------------------------------------------//
+#include "Frame.h"
 #include "Rectangle.h"
 #include "TextureBuffer.h"
 #include "ColorConversion.h"
@@ -93,7 +94,7 @@ public:
 
 	void SetBackgroundColor(float r, float g, float b, float a = 0.0f);
 	
-	void Render();
+	void RenderFrame(CFrame *Frame = NULL);
 };
 
 

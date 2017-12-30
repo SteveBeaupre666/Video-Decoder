@@ -27,27 +27,10 @@ void __fastcall TMainForm::FormCreate(TObject *Sender)
 {
 	AppDir = "C:\\New Programming Folder\\Programs\\Video Converter\\";
 	SetCurrentDirectoryA(AppDir.c_str());
-
 	SettingsFileName = AppDir + "Settings.bin";
-	AnsiString DllName = "Converter.dll";
 
-	hDll = LoadLibraryA(DllName.c_str());
-	if(hDll){
-		SetMainWindow    = (PFSETMAINWINDOW)GetProcAddress(hDll, "_SetMainWindow");
-		SetOpenGLWindow  = (PFSETOPENGLWINDOW)GetProcAddress(hDll, "_SetOpenGLWindow");
-		InitializeOpenGL = (PFINITIALIZEOPENGL)GetProcAddress(hDll, "_InitializeOpenGL");
-		CleanupOpenGL    = (PFCLEANUPOPENGL)GetProcAddress(hDll, "_CleanupOpenGL");
-		SetBgColor       = (PFSETBGCOLOR)GetProcAddress(hDll, "_SetBgColor");
-		Render           = (PFRENDER)GetProcAddress(hDll, "_Render");
-		StartJob         = (PFSTARTJOB)GetProcAddress(hDll, "_StartJob");
-		IsJobRunning     = (PFISJOBRUNNING)GetProcAddress(hDll, "_IsJobRunning");
-		CancelJob        = (PFCANCELJOB)GetProcAddress(hDll, "_CancelJob");
-		PauseJob         = (PFCANCELJOB)GetProcAddress(hDll, "_PauseJob");
-		ConvertVideo     = (PFCONVERTVIDEO)GetProcAddress(hDll, "_ConvertVideo");
-	} else {
-		ShowMessage(DllName + " not found.");
+	if(!LoadDll(AnsiString("Converter.dll")))
 		Application->Terminate();
-	}
 
 	//LoadSettings();
 
@@ -56,13 +39,58 @@ void __fastcall TMainForm::FormCreate(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::FormCloseQuery(TObject *Sender, bool &CanClose)
 {
-	CanClose = !IsJobRunning();
+	CanClose = !IsThreadRunning();
 }
 //---------------------------------------------------------------------------
 void __fastcall TMainForm::FormClose(TObject *Sender, TCloseAction &Action)
 {
 	//SaveSettings();
 
+	FreeDll();
+}
+//---------------------------------------------------------------------------
+bool __fastcall TMainForm::LoadDll(AnsiString DllName)
+{
+	hDll = LoadLibraryA(DllName.c_str());
+
+	if(hDll){
+
+		SetMainWindow    = (PFSETMAINWINDOW)GetProcAddress(hDll, "_SetMainWindow");
+		SetOpenGLWindow  = (PFSETOPENGLWINDOW)GetProcAddress(hDll, "_SetOpenGLWindow");
+		InitializeOpenGL = (PFINITIALIZEOPENGL)GetProcAddress(hDll, "_InitializeOpenGL");
+		CleanupOpenGL    = (PFCLEANUPOPENGL)GetProcAddress(hDll, "_CleanupOpenGL");
+		SetBgColor       = (PFSETBGCOLOR)GetProcAddress(hDll, "_SetBgColor");
+		Render           = (PFRENDER)GetProcAddress(hDll, "_Render");
+		StartThread      = (PFSTARTTHREAD)GetProcAddress(hDll, "_StartThread");
+		IsThreadRunning  = (PFISTHREADRUNNING)GetProcAddress(hDll, "_IsThreadRunning");
+		AbortThread      = (PFABORTTHREAD)GetProcAddress(hDll, "_AbortThread");
+		PauseThread      = (PFPAUSETHREAD)GetProcAddress(hDll, "_PauseThread");
+		ConvertVideo     = (PFCONVERTVIDEO)GetProcAddress(hDll, "_ConvertVideo");
+
+		if(!SetOpenGLWindow ||
+		   !InitializeOpenGL ||
+		   !CleanupOpenGL ||
+		   !SetBgColor ||
+		   !Render ||
+		   !StartThread ||
+		   !IsThreadRunning ||
+		   !AbortThread ||
+		   !PauseThread ||
+		   !ConvertVideo)
+		{
+			return false;
+		}
+
+	} else {
+		ShowMessage(DllName + " not found.");
+		return false;
+	}
+
+	return true;
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainForm::FreeDll()
+{
 	if(hDll){
 	  CleanupOpenGL();
 	  FreeLibrary(hDll);
@@ -143,7 +171,7 @@ void __fastcall TMainForm::ButtonConvertClick(TObject *Sender)
 		}
 	}
 
-	StartJob(FilesCount, InputFiles.c_str(), OutputFiles.c_str());
+	StartThread(FilesCount, InputFiles.c_str(), OutputFiles.c_str());
 }
 //---------------------------------------------------------------------------
 AnsiString __fastcall TMainForm::ChangeFileExt(AnsiString Name, AnsiString Ext)

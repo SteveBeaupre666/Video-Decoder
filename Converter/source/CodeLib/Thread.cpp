@@ -116,7 +116,7 @@ void CThread::Resume()
 //-----------------------------------------------------------------------------
 // Return true if the thread is paused (and still up)
 //-----------------------------------------------------------------------------
-bool CThread::IsPaused()
+bool CThread::Paused()
 {
 	if(!IsRunning())
 		return false;
@@ -124,3 +124,4 @@ bool CThread::IsPaused()
 	// Return true if the even is set
 	return WaitForSingleObject(PauseEvent, 0) == WAIT_OBJECT_0;
 }
+

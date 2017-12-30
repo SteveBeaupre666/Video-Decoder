@@ -98,3 +98,8 @@ AVStream* CFormatContext::GetAudioStream()
 	return GetStream(AVMEDIA_TYPE_AUDIO);
 }
 
+bool CFormatContext::ReadFrame(AVPacket* pkt)
+{
+	int res = av_read_frame(FormatCtx, pkt);
+	return res >= 0;
+}

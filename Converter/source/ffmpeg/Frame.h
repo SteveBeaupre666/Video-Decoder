@@ -2,7 +2,10 @@
 //----------------------------------------------------------------------//
 #include "ffmpeg.h"
 #include "FileIO.h"
+//#include "Vector2d.h"
 //----------------------------------------------------------------------//
+
+//typedef CVector2d vec2;
 
 class CFrame {
 public:
@@ -12,14 +15,21 @@ private:
 	AVFrame* Frame;
 private:
 	void Initialize();
+private:
+	int  GetWidth();
+	int  GetHeight();
+	void SetWidth(int w);
+	void SetHeight(int h);
+	void GetSize(int &w, int &h);
+	void SetSize(int w, int h);
 public:
 	AVFrame* Get();
 
 	bool Alloc();
 	void Free();
 
-	//bool SetFrameBuffer(BYTE *buf, int w, int h, AVPixelFormat fmt);
-	//bool WriteFrame(CFileIO *f, int w, int h, bool grayscale = false);
+	BYTE* GetChannel(char c);
 
+	void SetupFrameBuffer(void *buf, int w, int h, AVPixelFormat fmt);
 };
 

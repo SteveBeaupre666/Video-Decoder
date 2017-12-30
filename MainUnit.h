@@ -22,10 +22,10 @@ typedef BOOL (__stdcall * PFINITIALIZEOPENGL)();
 typedef void (__stdcall * PFCLEANUPOPENGL)();
 typedef void (__stdcall * PFSETBGCOLOR)(float r, float g, float b);
 typedef void (__stdcall * PFRENDER)();
-typedef void (__stdcall * PFSTARTJOB)(int files_count, char *input_files, char *output_files);
-typedef BOOL (__stdcall * PFISJOBRUNNING)();
-typedef void (__stdcall * PFCANCELJOB)();
-typedef void (__stdcall * PFPAUSEJOB)();
+typedef void (__stdcall * PFSTARTTHREAD)(int files_count, char *input_files, char *output_files);
+typedef BOOL (__stdcall * PFISTHREADRUNNING)();
+typedef void (__stdcall * PFABORTTHREAD)();
+typedef void (__stdcall * PFPAUSETHREAD)();
 typedef UINT (__stdcall * PFCONVERTVIDEO)(char *input_fname, char *output_fname);
 //---------------------------------------------------------------------------
 #define WM_UPDATE_PROGRESS		WM_USER + 101
@@ -62,6 +62,9 @@ __published:	// IDE-managed Components
 	void __fastcall ButtonConvertClick(TObject *Sender);
 	void __fastcall ButtonBrowseClick(TObject *Sender);
 private:	// User declarations
+	bool __fastcall LoadDll(AnsiString DllName);
+	void __fastcall FreeDll();
+
 	void __fastcall WndProc(TMessage& Msg);
 
 	//void __fastcall GetAppDir(AnsiString &dir);
@@ -74,10 +77,10 @@ public:		// User declarations
 	PFCLEANUPOPENGL    CleanupOpenGL;
 	PFSETBGCOLOR       SetBgColor;
 	PFRENDER           Render;
-	PFSTARTJOB         StartJob;
-	PFISJOBRUNNING     IsJobRunning;
-	PFCANCELJOB        CancelJob;
-	PFPAUSEJOB         PauseJob;
+	PFSTARTTHREAD      StartThread;
+	PFISTHREADRUNNING  IsThreadRunning;
+	PFABORTTHREAD      AbortThread;
+	PFPAUSETHREAD      PauseThread;
 	PFCONVERTVIDEO     ConvertVideo;
 public:		// User declarations
 	__fastcall TMainForm(TComponent* Owner);

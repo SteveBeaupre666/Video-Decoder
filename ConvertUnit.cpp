@@ -24,7 +24,7 @@ void __fastcall TConvertForm::ResetCancelButton()
 void __fastcall TConvertForm::ButtonCancelClick(TObject *Sender)
 {
 	if(ButtonCancel->Caption == "Cancel"){
-		MainForm->CancelJob();
+		MainForm->AbortThread();
 	} else {
 		Close();
 	}
@@ -32,7 +32,7 @@ void __fastcall TConvertForm::ButtonCancelClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TConvertForm::ButtonPauseClick(TObject *Sender)
 {
-	MainForm->PauseJob();
+	MainForm->PauseThread();
 }
 //---------------------------------------------------------------------------
 
