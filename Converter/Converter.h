@@ -37,11 +37,40 @@
 #define DECODE_VIDEO  0
 #define ENCODE_VIDEO  1
 
+//----------------------------------------------------------------------//
+// Internal structures
+//----------------------------------------------------------------------//
+
 struct JobDataStruct {
 	int   NumFiles;
 	char *InputFiles;
 	char *OutputFiles;
 };
+	
+/*struct DecodeParams {
+
+	CFileIO *OutputFile;
+	CBuffer *FrameBuffer;
+
+	CFrame *SrcFrame;
+	CFrame *DstFrame;
+	
+	CPacket *DecoderPacket;
+	CPacket *EncoderPacket;
+
+	CVideoDecoder *VideoDecoder;
+	CVideoEncoder *VideoEncoder;
+
+	CFormatContext  *FormatContext;
+	CConvertContext *ConvertContext;
+
+	int  src_height;
+
+	int  video_stream;
+	int  audio_stream;
+
+	bool flushing;
+};*/
 	
 //----------------------------------------------------------------------//
 // Internal Functions
@@ -71,24 +100,23 @@ UINT EXP_FUNC _ConvertVideo(char *input_fname, char *output_fname);
 //----------------------------------------------------------------------//
 // Globals Functions
 //----------------------------------------------------------------------//
-
-bool DecodeLoop(CFileIO *OutputFile, CConvertContext *ConvertContext, CVideoDecoder *VideoDecoder, CVideoEncoder *VideoEncoder, CPacket *DecoderPacket, CPacket *EncoderPacket, CFrame *SrcFrame, CFrame *DstFrame, int video_stream, int audio_stream, int src_height, bool flushing);
-
 bool ProcessVideo(AVCodecContext *ctx, AVFrame *frame, AVPacket *pkt, bool &got_frame, int mode);
 bool DecodeVideo(AVCodecContext *ctx, AVFrame *frame, AVPacket *pkt, bool &got_frame);
 bool EncodeVideo(AVCodecContext *ctx, AVFrame *frame, AVPacket *pkt, bool &got_frame);
 
+bool CheckThreadStatus();
+bool Decode(CFileIO *OutputFile, CConvertContext *ConvertContext, CVideoDecoder *VideoDecoder, CVideoEncoder *VideoEncoder, CPacket *DecoderPacket, CPacket *EncoderPacket, CFrame *SrcFrame, CFrame *DstFrame, int video_stream, int audio_stream, int src_height, bool flushing = false);
+
 bool WritePacket(CFileIO &File, CPacket &Packet);
 void CloseOutputFile(CFileIO &OutputFile);
-
-AVRational MakeRatio(int num, int den);
-
-int CalcFrameBufferSize(int w, int h);
 
 void SetAlignment(int &w, int &h, int n);
 void SetSizeLimit(int &w, int &h, int limit);
 
-bool CheckThreadStatus();
+AVRational MakeRatio(int num, int den);
+int CalcFrameBufferSize(int w, int h);
 
 void PostConvertionDoneMsg(bool canceled);
 void UpdateProgress(int frame, int frames_count);
+
+

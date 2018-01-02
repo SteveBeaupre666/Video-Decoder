@@ -94,7 +94,7 @@ public:
 
 	void SetBackgroundColor(float r, float g, float b, float a = 0.0f);
 	
-	void RenderFrame(CFrame *Frame = NULL);
+	void RenderFrame(/*CFrame *Frame = NULL*/);
 };
 
 
