@@ -18,7 +18,7 @@ public:
 	bool GetContext(int sw, int sh, AVPixelFormat sf, int dw, int dh, AVPixelFormat df);
 	void FreeContext();
 
-	void ScaleFrame(AVFrame *in, AVFrame *out, int height);
+	void Scale(AVFrame *in, AVFrame *out, int height);
 };
 
  

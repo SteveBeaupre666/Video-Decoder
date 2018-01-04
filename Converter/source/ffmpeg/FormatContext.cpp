@@ -55,7 +55,7 @@ int CFormatContext::GetNumStreams()
 
 int CFormatContext::FindStream(AVMediaType type)
 {
-	if(type == AVMEDIA_TYPE_VIDEO || type == AVMEDIA_TYPE_AUDIO)
+	if(type != AVMEDIA_TYPE_VIDEO && type != AVMEDIA_TYPE_AUDIO)
 		return INVALID_STREAM;
 
 	int n = GetNumStreams();

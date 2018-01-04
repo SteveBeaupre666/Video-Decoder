@@ -35,7 +35,6 @@
 #define ENCODE_VIDEO  1
 
 #define USE_OLD_CODE
-#define NO_AUDIO
 
 //#define TEST(x)	if(!x){goto cleanup;}
 
@@ -51,43 +50,19 @@ struct JobDataStruct {
 	
 #ifdef USE_OLD_CODE
 struct VideoDecoderStruct {
-    AVFormatContext *format_ctx;
-    SwsContext      *convert_ctx;
+    //AVFormatContext *format_ctx;
 	AVCodec         *codec;
     AVCodecContext  *codec_ctx;
-    AVPacket        *packet; 
-	AVFrame         *src_frame;
-    AVFrame         *dst_frame;
 };
 
 struct VideoEncoderStruct {
 	AVCodec         *codec;
     AVCodecContext  *codec_ctx;
-    AVPacket        *packet; 
 };
-
-#ifndef NO_AUDIO
-struct AudioDecoderStruct {
-	AVCodec         *codec;
-    AVCodecContext  *codec_ctx;
-    AVPacket        *packet; 
-    AVFrame         *frame;
-};
-
-struct AudioEncoderStruct {
-	AVCodec         *codec;
-    AVCodecContext  *codec_ctx;
-    AVPacket        *packet; 
-};
-#endif
 
 struct ffmpegStruct {
 	VideoDecoderStruct VideoDecoder;
 	VideoEncoderStruct VideoEncoder;
-	#ifndef NO_AUDIO
-	AudioDecoderStruct AudioDecoder;
-	AudioEncoderStruct AudioEncoder;
-	#endif
 };
 #endif	
 //----------------------------------------------------------------------//
@@ -118,30 +93,29 @@ UINT EXP_FUNC _ConvertVideo(char *input_fname, char *output_fname);
 //----------------------------------------------------------------------//
 // Globals Functions
 //----------------------------------------------------------------------//
-bool ProcessVideo(AVCodecContext *ctx, AVFrame *frame, AVPacket *pkt, bool &got_frame, int mode);
-bool DecodeVideo(AVCodecContext *ctx, AVFrame *frame, AVPacket *pkt, bool &got_frame);
-bool EncodeVideo(AVCodecContext *ctx, AVFrame *frame, AVPacket *pkt, bool &got_frame);
 
-bool CheckThreadStatus();
-bool Decode(CFileIO *OutputFile, CConvertContext *ConvertContext, CVideoDecoder *VideoDecoder, CVideoEncoder *VideoEncoder, CPacket *DecoderPacket, CPacket *EncoderPacket, CFrame *SrcFrame, CFrame *DstFrame, int video_stream, int audio_stream, int src_height, BYTE *y, BYTE *u, BYTE *v, bool flushing = false);
+bool Decode(CFileIO &OutputFile, CFrame &SrcFrame, CFrame &DstFrame, CPacket &DecoderPacket, CPacket &EncoderPacket, CConvertContext &ConvertContext, AVCodecContext *pDecoderCodecCtx, AVCodecContext *pEncoderCodecCtx, int &frame, int frames_count, int video_stream, int src_height, BYTE *y, BYTE *u, BYTE *v, bool flushing);
 
-bool WritePacket(CFileIO &File, CPacket &Packet);
-void CloseOutputFile(CFileIO &OutputFile);
+bool xxcodeVideo(AVCodecContext *ctx, AVFrame *frame, AVPacket *pkt, int *got_frame, int mode);
+bool DecodeVideo(AVCodecContext *ctx, AVFrame *frame, AVPacket *pkt, int *got_frame);
+bool EncodeVideo(AVCodecContext *ctx, AVFrame *frame, AVPacket *pkt, int *got_frame);
+
+AVRational MakeRatio(int num, int den);
+int CalcFrameBufferSize(int w, int h);
+
+bool CheckThreadSignals();
 
 void SetAlignment(int &w, int &h, int n);
 void SetSizeLimit(int &w, int &h, int limit);
 
-AVRational MakeRatio(int num, int den);
-int CalcFrameBufferSize(int w, int h);
+bool WritePacket(CFileIO &File, CPacket &Packet);
+void CloseOutputFile(CFileIO &OutputFile);
 
 void PostConvertionDoneMsg(bool canceled);
 void UpdateProgress(int frame, int frames_count);
 
 #ifdef USE_OLD_CODE
 void WriteEndCode(CFileIO &OutputFile);
-void FreeFrame(AVFrame** frame);
-void FreePacket(AVPacket** packet);
+
 void FreeCodecCtx(AVCodecContext** codec_ctx, AVCodec** codec, bool free_ctx);
-void FreeFormatCtx(AVFormatContext** format_ctx);
-void FreeConvertCtx(SwsContext** convert_ctx);
 #endif

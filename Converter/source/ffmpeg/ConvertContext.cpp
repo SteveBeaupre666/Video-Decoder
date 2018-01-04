@@ -28,7 +28,7 @@ bool CConvertContext::GetContext(int sw, int sh, AVPixelFormat sf, int dw, int d
 	return ConvertCtx != NULL;
 }
 
-void CConvertContext::ScaleFrame(AVFrame *in, AVFrame *out, int height)
+void CConvertContext::Scale(AVFrame *in, AVFrame *out, int height)
 {
 	if(ConvertCtx)
 		sws_scale(ConvertCtx, in->data, in->linesize, 0, height, out->data, out->linesize);

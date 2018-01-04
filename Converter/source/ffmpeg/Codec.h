@@ -3,23 +3,19 @@
 #include "ffmpeg.h"
 //----------------------------------------------------------------------//
 
-class CPacket {
+class CCodec {
 public:
-	CPacket();
-	~CPacket();
+	CCodec();
 private:
-	AVPacket* Packet;
+	AVCodec* pCodec;
 private:
 	void Initialize();
 public:
-	AVPacket* Get();
+	AVCodec* Get();
 
-	bool Alloc();
-	void Free();
+	void Reset();
 
-	void InitPacket();
-	void SetBuffer(void *buf, int size);
-	void FreePacket();
-
-	int  GetStreamIndex();
+	bool FindDecoder(AVCodecID id);
+	bool FindEncoder(AVCodecID id);
 };
+

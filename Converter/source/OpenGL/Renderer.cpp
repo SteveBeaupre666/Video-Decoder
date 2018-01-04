@@ -541,17 +541,8 @@ void CRenderer::DrawQuad()
 //-----------------------------------------------------------------------------
 // Render the frame
 //-----------------------------------------------------------------------------
-void CRenderer::RenderFrame(/*CFrame *Frame*/)
+void CRenderer::Render()
 {
-	/*if(Frame){
-
-		BYTE *y = Frame->GetChannel('Y');
-		BYTE *u = Frame->GetChannel('U');
-		BYTE *v = Frame->GetChannel('V');
-	
-		UpdateTexture(y, u, v);
-	}*/
-
 	SetClearColor();
 	glClear(GL_CLEAR_FLAGS);
 	glColor3f(1.0f, 1.0f, 1.0f);

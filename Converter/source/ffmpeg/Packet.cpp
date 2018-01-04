@@ -20,15 +20,15 @@ AVPacket* CPacket::Get()
 	return Packet;
 }
 
-bool CPacket::Allocate()
+bool CPacket::Alloc()
 {
 	Free();
 
 	static const int AVPacketSize = sizeof(AVPacket);
 	Packet = (AVPacket*)malloc(AVPacketSize);
 	
-	if(Packet)
-		InitPacket();
+	//if(Packet)
+	//	InitPacket();
 
 	return Packet != NULL;
 }
@@ -43,19 +43,17 @@ void CPacket::Free()
 	Initialize();
 }
 
-void CPacket::InitPacket(void *data, int size)
+void CPacket::InitPacket()
 {
-	if(Packet){
+	if(Packet)
 		av_init_packet(Packet);
-		SetupPacket(data, size);
-	}
 }
 
-void CPacket::SetupPacket(void *data, int size)
+void CPacket::SetBuffer(void *buf, int size)
 {
 	if(Packet){
 		Packet->size = size;
-		Packet->data = (uint8_t*)data;
+		Packet->data = (uint8_t*)buf;
 	}
 }
 

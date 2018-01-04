@@ -1,42 +1,38 @@
 #pragma once
 //----------------------------------------------------------------------//
-#include "ffmpeg.h"
+#include "Codec.h"
 //----------------------------------------------------------------------//
 
-class ACodecContext {
+class CCodecContext {
 public:
-	ACodecContext();
-	~ACodecContext();
+	CCodecContext();
+	~CCodecContext();
 protected:
 	AVCodec* Codec;
 	AVCodecContext* CodecCtx;
 protected:
+	bool Allocated;
 	void Initialize();
-	void Cleanup();
 public:
 	AVCodecContext* GetCtx();
 	AVCodec*        GetCodec();
 
-	bool AllocContext();
-	virtual void FreeContext(){}
+	bool Alloc();
+	void Free();
 
-	bool GetCodecFromStream(AVStream* stream);
-	bool OpenCodec();
+	bool GetFromStream(AVStream* stream);
 
-	bool FindDecoder(AVCodecID id);
+	bool FindDecoder();
 	bool FindEncoder(AVCodecID id);
 
-	int  GetWidth();
-	int  GetHeight();
-
-	void SetSize(int w, int h);
-	void GetSize(int &w, int &h);
+	bool Open();
+	void Close();
 };
 
 //----------------------------------------------------------------------//
 //----------------------------------------------------------------------//
 //----------------------------------------------------------------------//
-
+/*
 class CVideoDecoder : public ACodecContext {
 public:
 	void Setup();
@@ -64,5 +60,4 @@ class CAudioEncoder : public ACodecContext {
 public:
 	void FreeContext();
 };
-
-
+*/
