@@ -78,26 +78,6 @@ AVStream* CFormatContext::GetStream(AVMediaType type)
 	return FormatCtx->streams[i];
 }
 
-int CFormatContext::FindVideoStream()
-{
-	return FindStream(AVMEDIA_TYPE_VIDEO);
-}
-
-int CFormatContext::FindAudioStream()
-{
-	return FindStream(AVMEDIA_TYPE_AUDIO);
-}
-
-AVStream* CFormatContext::GetVideoStream()
-{
-	return GetStream(AVMEDIA_TYPE_VIDEO);
-}
-
-AVStream* CFormatContext::GetAudioStream()
-{
-	return GetStream(AVMEDIA_TYPE_AUDIO);
-}
-
 bool CFormatContext::ReadFrame(AVPacket* pkt)
 {
 	int res = av_read_frame(FormatCtx, pkt);

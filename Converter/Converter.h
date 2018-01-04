@@ -13,11 +13,12 @@
 #include "Renderer.h"
 #include "FileName.h"
 //----------------------------------------------------------------------//
+#include "Frame.h"
+#include "Packet.h"
+//----------------------------------------------------------------------//
+#include "CodecContext.h"
 #include "FormatContext.h"
 #include "ConvertContext.h"
-#include "CodecContext.h"
-#include "Packet.h"
-#include "Frame.h"
 //----------------------------------------------------------------------//
 #include "SafeKill.h"
 //----------------------------------------------------------------------//
@@ -30,13 +31,16 @@
 #define WM_UPDATE_PROGRESS		WM_USER + 101
 #define WM_THREAD_TERMINATED	WM_USER + 102
 //----------------------------------------------------------------------//
-
-#define DECODE_VIDEO  0
-#define ENCODE_VIDEO  1
-
+#define DECODER  0
+#define ENCODER  1
+//----------------------------------------------------------------------//
+#define DECODE_VIDEO 0
+#define ENCODE_VIDEO 1
+//----------------------------------------------------------------------//
 #define USE_OLD_CODE
-
+//----------------------------------------------------------------------//
 //#define TEST(x)	if(!x){goto cleanup;}
+//----------------------------------------------------------------------//
 
 //----------------------------------------------------------------------//
 // Internal structures
@@ -48,32 +52,17 @@ struct JobDataStruct {
 	char *OutputFiles;
 };
 	
-#ifdef USE_OLD_CODE
-struct VideoDecoderStruct {
-    //AVFormatContext *format_ctx;
-	AVCodec         *codec;
-    AVCodecContext  *codec_ctx;
-};
-
-struct VideoEncoderStruct {
-	AVCodec         *codec;
-    AVCodecContext  *codec_ctx;
-};
-
-struct ffmpegStruct {
-	VideoDecoderStruct VideoDecoder;
-	VideoEncoderStruct VideoEncoder;
-};
-#endif	
 //----------------------------------------------------------------------//
 // Internal Functions
 //----------------------------------------------------------------------//
+
 void InitDll();
 void ShutDownDll();
 
 //----------------------------------------------------------------------//
 // Exported Functions
 //----------------------------------------------------------------------//
+
 void EXP_FUNC _SetMainWindow(HWND hWnd);
 void EXP_FUNC _SetOpenGLWindow(HWND hWnd);
 
@@ -94,7 +83,7 @@ UINT EXP_FUNC _ConvertVideo(char *input_fname, char *output_fname);
 // Globals Functions
 //----------------------------------------------------------------------//
 
-bool Decode(CFileIO &OutputFile, CFrame &SrcFrame, CFrame &DstFrame, CPacket &DecoderPacket, CPacket &EncoderPacket, CConvertContext &ConvertContext, AVCodecContext *pDecoderCodecCtx, AVCodecContext *pEncoderCodecCtx, int &frame, int frames_count, int video_stream, int src_height, BYTE *y, BYTE *u, BYTE *v, bool flushing);
+bool Decode(CFileIO &OutputFile, CFrame &SrcFrame, CFrame &DstFrame, CPacket &DecoderPacket, CPacket &EncoderPacket, CConvertContext &ConvertContext, CCodecContext &VideoDecoder, CCodecContext &VideoEncoder, int &frame, int frames_count, int video_stream, int src_height, BYTE *y, BYTE *u, BYTE *v, bool flushing);
 
 bool xxcodeVideo(AVCodecContext *ctx, AVFrame *frame, AVPacket *pkt, int *got_frame, int mode);
 bool DecodeVideo(AVCodecContext *ctx, AVFrame *frame, AVPacket *pkt, int *got_frame);
@@ -116,6 +105,4 @@ void UpdateProgress(int frame, int frames_count);
 
 #ifdef USE_OLD_CODE
 void WriteEndCode(CFileIO &OutputFile);
-
-void FreeCodecCtx(AVCodecContext** codec_ctx, AVCodec** codec, bool free_ctx);
 #endif

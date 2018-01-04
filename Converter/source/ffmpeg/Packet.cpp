@@ -27,10 +27,13 @@ bool CPacket::Alloc()
 	static const int AVPacketSize = sizeof(AVPacket);
 	Packet = (AVPacket*)malloc(AVPacketSize);
 	
-	//if(Packet)
-	//	InitPacket();
+	if(Packet){
+		InitPacket();
+		SetBuffer(NULL, 0);
+		return true;
+	}
 
-	return Packet != NULL;
+	return false;
 }
 
 void CPacket::Free()

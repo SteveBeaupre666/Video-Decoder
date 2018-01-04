@@ -81,8 +81,8 @@ object MainForm: TMainForm
     OnClick = ButtonConvertClick
   end
   object MainMenu: TMainMenu
-    Left = 32
-    Top = 40
+    Left = 40
+    Top = 48
     object File1: TMenuItem
       Caption = 'File'
       object AddFilesMenu: TMenuItem

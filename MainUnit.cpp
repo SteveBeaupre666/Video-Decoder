@@ -199,7 +199,7 @@ AnsiString __fastcall TMainForm::ChangeFileExt(AnsiString Name, AnsiString Ext)
 
 AnsiString __fastcall TMainForm::FixPath(AnsiString path)
 {
-	char backslash = 0x92;
+	char backslash = 0x5C;
 	int len = path.Length();
 	char *s = path.c_str();
 	if(s[len-1] != backslash)

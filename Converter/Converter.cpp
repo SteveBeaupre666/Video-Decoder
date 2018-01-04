@@ -214,15 +214,12 @@ UINT EXP_FUNC _ConvertVideo(char *input_fname, char *output_fname)
 	CPacket DecoderPacket;
 	CPacket EncoderPacket;
 
+	CCodecContext VideoDecoder;
+	CCodecContext VideoEncoder;
+
     CFormatContext  FormatContext;
     CConvertContext ConvertContext;
 
-	ffmpegStruct ffmpeg;
-	ZeroMemory(&ffmpeg, sizeof(ffmpegStruct));
-
-	VideoDecoderStruct *VideoDecoder = &ffmpeg.VideoDecoder;
-	VideoEncoderStruct *VideoEncoder = &ffmpeg.VideoEncoder;
-	
     ///////////////////////////////////////////////////////////////////////////////////////
 
 	if(!FormatContext.AllocContext())
@@ -231,75 +228,79 @@ UINT EXP_FUNC _ConvertVideo(char *input_fname, char *output_fname)
 	if(!FormatContext.OpenInput(input_fname))
 		goto cleanup;
 
-    ///////////////////////////////////////////////////////////////////////////////////////
-
 	if(!FormatContext.FindStreamInfo())
 		goto cleanup;
 
-	int video_stream = FormatContext.FindVideoStream();
-	if(video_stream < 0)
-		goto cleanup;
-
-	AVStream* stream = FormatContext.GetVideoStream();
-
     ///////////////////////////////////////////////////////////////////////////////////////
 
-	VideoDecoder->codec_ctx = stream->codec;
-	VideoDecoder->codec = avcodec_find_decoder(VideoDecoder->codec_ctx->codec_id);
+	int video_stream = FormatContext.FindStream(AVMEDIA_TYPE_VIDEO);
+	AVStream* stream = FormatContext.GetStream(AVMEDIA_TYPE_VIDEO);
 
-    // open it
-    if(avcodec_open2(VideoDecoder->codec_ctx, VideoDecoder->codec, NULL) < 0)
-		goto cleanup;
-
-    if(!SrcFrame.Alloc() || !DstFrame.Alloc())
+	if(!stream || video_stream == INVALID_STREAM)
 		goto cleanup;
 
     ///////////////////////////////////////////////////////////////////////////////////////
 
-	// find the mpeg1 video encoder
-	VideoEncoder->codec = avcodec_find_encoder(CODEC_ID_MPEG1VIDEO);
-	if(!VideoEncoder->codec)
+	if(!VideoDecoder.GetContextFromStream(stream))
 		goto cleanup;
 
-	VideoEncoder->codec_ctx = avcodec_alloc_context3(VideoEncoder->codec);
-	if(!VideoEncoder->codec_ctx)
+	if(!VideoDecoder.FindDecoder())
 		goto cleanup;
 
-	///////////////////////////////////////////////////////////////////////////////////////
+	if(!VideoDecoder.OpenCodec())
+		goto cleanup;
 
-	int src_width  = VideoDecoder->codec_ctx->width;
-	int src_height = VideoDecoder->codec_ctx->height;
+    ///////////////////////////////////////////////////////////////////////////////////////
 
-	int dst_width  = src_width;
-	int dst_height = src_height;
+	if(!VideoEncoder.FindEncoder(CODEC_ID_MPEG1VIDEO))
+		goto cleanup;
 
-	SetSizeLimit(dst_width, dst_height, 1024);
-	SetAlignment(dst_width, dst_height, 16);
-
-	AVPixelFormat dst_format = AV_PIX_FMT_YUV420P;
-	AVPixelFormat src_format = VideoDecoder->codec_ctx->pix_fmt;
-
-	///////////////////////////////////////////////////////////////////////////////////////
-
-	VideoEncoder->codec_ctx->width  = dst_width;
-	VideoEncoder->codec_ctx->height = dst_height;
-	VideoEncoder->codec_ctx->bit_rate = 2000000;
-
-	VideoEncoder->codec_ctx->time_base = MakeRatio(1, 25);
-	VideoEncoder->codec_ctx->gop_size = 10;
-	VideoEncoder->codec_ctx->max_b_frames = 1;
-	VideoEncoder->codec_ctx->pix_fmt = dst_format;
-
-	// open it
-	if(avcodec_open2(VideoEncoder->codec_ctx, VideoEncoder->codec, NULL) < 0)
+	if(!VideoEncoder.AllocContext())
 		goto cleanup;
 
 	///////////////////////////////////////////////////////////////////////////////////////
 
-	const int FrameBufferSize = CalcFrameBufferSize(dst_width, dst_height);
-	FrameBuffer.Allocate(FrameBufferSize);
+	int sw = VideoDecoder.GetFrameWidth();
+	int sh = VideoDecoder.GetFrameHeight();
+	
+	int dw = sw;
+	int dh = sh;
 
-	DstFrame.SetupFrameBuffer(FrameBuffer.Get(), dst_width, dst_height, dst_format);
+	SetSizeLimit(dw, dh, 1024);   // Set Width/Height limit
+	SetAlignment(dw, dh, 16);     // Force 16 bytes alignment
+
+	AVPixelFormat sf = VideoDecoder.GetCtx()->pix_fmt;
+	AVPixelFormat df = AV_PIX_FMT_YUV420P;
+
+	///////////////////////////////////////////////////////////////////////////////////////
+
+	VideoEncoder.GetCtx()->gop_size = 10;
+	VideoEncoder.GetCtx()->max_b_frames = 1;
+
+	VideoEncoder.GetCtx()->bit_rate  = 2000000;
+	VideoEncoder.GetCtx()->time_base = MakeRatio(1, 25);
+
+	VideoEncoder.GetCtx()->width  = dw;
+	VideoEncoder.GetCtx()->height = dh;
+
+	VideoEncoder.GetCtx()->pix_fmt = df;
+
+	if(!VideoEncoder.OpenCodec())
+		goto cleanup;
+
+	///////////////////////////////////////////////////////////////////////////////////////
+
+	if(!SrcFrame.Alloc())
+		goto cleanup;
+
+	if(!DstFrame.Alloc())
+		goto cleanup;
+
+	const int FrameBufferSize = CalcFrameBufferSize(dw, dh);
+	if(!FrameBuffer.Allocate(FrameBufferSize))
+		goto cleanup;
+
+	DstFrame.SetupFrameBuffer(FrameBuffer.Get(), dw, dh, df);
 	
 	BYTE *y = DstFrame.GetChannel('Y');
 	BYTE *u = DstFrame.GetChannel('U');
@@ -307,19 +308,21 @@ UINT EXP_FUNC _ConvertVideo(char *input_fname, char *output_fname)
 
     ///////////////////////////////////////////////////////////////////////////////////////
 
-	ConvertContext.GetContext(src_width, src_height, src_format, dst_width, dst_height, dst_format);
+	if(!DecoderPacket.Alloc())
+		goto cleanup;
 
+	if(!EncoderPacket.Alloc())
+		goto cleanup;
+	
     ///////////////////////////////////////////////////////////////////////////////////////
 
-	DecoderPacket.Alloc();
-	EncoderPacket.Alloc();
+	if(!ConvertContext.GetContext(sw, sh, sf, dw, dh, df))
+		goto cleanup;
 
-	DecoderPacket.InitPacket();
-	DecoderPacket.SetBuffer(NULL, 0);
-	
 	///////////////////////////////////////////////////////////////////////////////////////
 
-	Renderer.CreateTexture(dst_width, dst_height, 4);
+	if(!Renderer.CreateTexture(dw, dh, 4))
+		goto cleanup;
 
 	///////////////////////////////////////////////////////////////////////////////////////
 
@@ -337,7 +340,7 @@ UINT EXP_FUNC _ConvertVideo(char *input_fname, char *output_fname)
 
 	while(FormatContext.ReadFrame(DecoderPacket.Get())){
 
-		if(!Decode(OutputFile, SrcFrame, DstFrame, DecoderPacket, EncoderPacket, ConvertContext, VideoDecoder->codec_ctx, VideoEncoder->codec_ctx, frame, frames_count, video_stream, src_height, y, u, v, false))
+		if(!Decode(OutputFile, SrcFrame, DstFrame, DecoderPacket, EncoderPacket, ConvertContext, VideoDecoder, VideoEncoder, frame, frames_count, video_stream, sh, y, u, v, false))
 			goto cleanup;
 
 		DecoderPacket.FreePacket();
@@ -347,23 +350,25 @@ UINT EXP_FUNC _ConvertVideo(char *input_fname, char *output_fname)
 
 	while(1){
 
-		if(!Decode(OutputFile, SrcFrame, DstFrame, DecoderPacket, EncoderPacket, ConvertContext, VideoDecoder->codec_ctx, VideoEncoder->codec_ctx, frame, frames_count, video_stream, src_height, y, u, v, true))
+		if(!Decode(OutputFile, SrcFrame, DstFrame, DecoderPacket, EncoderPacket, ConvertContext, VideoDecoder, VideoEncoder, frame, frames_count, video_stream, sh, y, u, v, true))
 			goto cleanup;
 
 		DecoderPacket.FreePacket();
 	}
 	
 	///////////////////////////////////////////////////////////////////////////////////////
+
 	res = JOB_SUCCEDED;
+
 	///////////////////////////////////////////////////////////////////////////////////////
 
 cleanup:
 
-	Renderer.DeleteTexture();
-	//Renderer.Render();
-
 	// Write 32 bits "End code" and close the file...
 	WriteEndCode(OutputFile);
+
+	Renderer.DeleteTexture();
+	//Renderer.Render();
 
 	// Cleanup everything
 	FrameBuffer.Free();
@@ -374,8 +379,8 @@ cleanup:
 	DecoderPacket.Free();
 	EncoderPacket.Free();
 
-	FreeCodecCtx(&VideoDecoder->codec_ctx, &VideoDecoder->codec, 0);
-	FreeCodecCtx(&VideoEncoder->codec_ctx, &VideoEncoder->codec, 1);
+	VideoDecoder.FreeContext();
+	VideoEncoder.FreeContext();
 
 	FormatContext.FreeContext();
 	ConvertContext.FreeContext();
@@ -393,28 +398,13 @@ void WriteEndCode(CFileIO &OutputFile)
 		OutputFile.Close();
 	}
 }
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-void FreeCodecCtx(AVCodecContext** codec_ctx, AVCodec** codec, bool free_ctx)
-{
-	if(*codec_ctx){
-		avcodec_close(*codec_ctx);
-		if(free_ctx)
-			av_free(&(*codec_ctx));
-		*codec_ctx = NULL;
-	}
-	*codec = NULL;
-}
-
-#else
-
-///////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////
-
+#ifndef USE_OLD_CODE
 UINT EXP_FUNC _ConvertVideo(char *input_fname, char *output_fname)
 {
 	UINT res = UNKNOW_ERROR;
@@ -578,7 +568,7 @@ cleanup:
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Decode(CFileIO &OutputFile, CFrame &SrcFrame, CFrame &DstFrame, CPacket &DecoderPacket, CPacket &EncoderPacket, CConvertContext &ConvertContext, AVCodecContext *pDecoderCodecCtx, AVCodecContext *pEncoderCodecCtx, int &frame, int frames_count, int video_stream, int src_height, BYTE *y, BYTE *u, BYTE *v, bool flushing)
+bool Decode(CFileIO &OutputFile, CFrame &SrcFrame, CFrame &DstFrame, CPacket &DecoderPacket, CPacket &EncoderPacket, CConvertContext &ConvertContext, CCodecContext &VideoDecoder, CCodecContext &VideoEncoder, int &frame, int frames_count, int video_stream, int src_height, BYTE *y, BYTE *u, BYTE *v, bool flushing)
 {
 	int stream_index = DecoderPacket.GetStreamIndex();
 
@@ -588,7 +578,7 @@ bool Decode(CFileIO &OutputFile, CFrame &SrcFrame, CFrame &DstFrame, CPacket &De
 			return false;
 
 		int got_frame = 0;
-		if(!DecodeVideo(pDecoderCodecCtx, SrcFrame.Get(), DecoderPacket.Get(), &got_frame))
+		if(!DecodeVideo(VideoDecoder.GetCtx(), SrcFrame.Get(), DecoderPacket.Get(), &got_frame))
 			return false;
 
 		if(!got_frame && flushing)
@@ -605,7 +595,7 @@ bool Decode(CFileIO &OutputFile, CFrame &SrcFrame, CFrame &DstFrame, CPacket &De
 			EncoderPacket.SetBuffer(NULL, 0);
 
 			int got_output = 0;
-			if(!EncodeVideo(pEncoderCodecCtx, DstFrame.Get(), EncoderPacket.Get(), &got_output))
+			if(!EncodeVideo(VideoEncoder.GetCtx(), DstFrame.Get(), EncoderPacket.Get(), &got_output))
 				return false;
 				
 			if(got_output){

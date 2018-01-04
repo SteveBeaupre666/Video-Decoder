@@ -28,8 +28,9 @@ public:
 	bool Alloc();
 	void Free();
 
-	BYTE* GetChannel(char c);
-
 	void SetupFrameBuffer(void *buf, int w, int h, AVPixelFormat fmt);
+
+	BYTE* GetChannel(char c);
+	void  GetChannels(BYTE **y, BYTE **u, BYTE **v);
 };
 

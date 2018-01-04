@@ -12,8 +12,6 @@ public:
 private:
 	AVFormatContext* FormatCtx;
 private:
-	int FindStream(AVMediaType type);
-	AVStream* GetStream(AVMediaType type);
 public:
 	AVFormatContext* GetCtx();
 	
@@ -27,8 +25,8 @@ public:
 
 	int GetNumStreams();
 
-	int FindVideoStream();
-	int FindAudioStream();
+	int FindStream(AVMediaType type);
+	AVStream* GetStream(AVMediaType type);
 
 	AVStream* GetVideoStream();
 	AVStream* GetAudioStream();

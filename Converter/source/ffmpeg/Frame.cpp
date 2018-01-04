@@ -66,6 +66,11 @@ void CFrame::Free()
 	Initialize();
 }
 
+void CFrame::SetupFrameBuffer(void *buf, int w, int h, AVPixelFormat fmt)
+{
+	av_image_fill_arrays(Frame->data, Frame->linesize, (uint8_t*)buf, AV_PIX_FMT_YUV420P, w, h, 1);
+}
+
 BYTE* CFrame::GetChannel(char c)
 {
 	BYTE *p = NULL;
@@ -80,8 +85,9 @@ BYTE* CFrame::GetChannel(char c)
 	return p;
 }
 
-void CFrame::SetupFrameBuffer(void *buf, int w, int h, AVPixelFormat fmt)
+void CFrame::GetChannels(BYTE **y, BYTE **u, BYTE **v)
 {
-	av_image_fill_arrays(Frame->data, Frame->linesize, (uint8_t*)buf, AV_PIX_FMT_YUV420P, w, h, 1);
+	*y = Frame->data[0];
+	*u = Frame->data[1];
+	*v = Frame->data[2];
 }
-
