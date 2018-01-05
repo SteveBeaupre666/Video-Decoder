@@ -42,6 +42,17 @@ void CVideoConverter::Cleanup()
 
 	FormatContext.FreeContext();
 	ConvertContext.FreeContext();
+
+	Initialize();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+void CVideoConverter::SetWindow(HWND hWnd)
+{
+	hMainWnd = hWnd;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -61,7 +72,7 @@ void CVideoConverter::UpdateProgress(int frame, int total)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-void CVideoConverter::AdjustSize(int &w, int &h, int max, int align)
+void CVideoConverter::AdjustFrameSize(int &w, int &h, int max, int align)
 {
 	if(max > 1){
 		while(w > max || h > max){
@@ -91,14 +102,9 @@ UINT CVideoConverter::ConvertVideo(char *in, char *out, CRenderer *pRenderer, CT
 
     ///////////////////////////////////////////////////////////////////////////////////////
 
-	if(!FormatContext.AllocContext())
-		goto cleanup;
-
-	if(!FormatContext.OpenInput(in))
-		goto cleanup;
-
-	if(!FormatContext.FindStreamInfo())
-		goto cleanup;
+	TEST(FormatContext.AllocContext());
+	TEST(FormatContext.OpenInput(in));
+	TEST(FormatContext.FindStreamInfo());
 
     ///////////////////////////////////////////////////////////////////////////////////////
 
@@ -113,54 +119,30 @@ UINT CVideoConverter::ConvertVideo(char *in, char *out, CRenderer *pRenderer, CT
 
     ///////////////////////////////////////////////////////////////////////////////////////
 
-	if(!VideoDecoder.GetContextFromStream(VideoStream.Get()))
-		goto cleanup;
-
-	if(!VideoDecoder.FindDecoder())
-		goto cleanup;
-
-	if(!VideoDecoder.OpenCodec())
-		goto cleanup;
+	TEST(VideoDecoder.GetContextFromStream(VideoStream.Get()));
+	TEST(VideoDecoder.FindDecoder());
+	TEST(VideoDecoder.OpenCodec());
 
     ///////////////////////////////////////////////////////////////////////////////////////
 
-	bool got_audio = audio_stream != INVALID_STREAM;
+	bool got_audio = false; // audio_stream != INVALID_STREAM;
 
 	if(got_audio){
-
-		if(!AudioDecoder.GetContextFromStream(AudioStream.Get()))
-			goto cleanup;
-
-		if(!AudioDecoder.FindDecoder())
-			goto cleanup;
-
-		//AudioDecoder.GetCtx()->channels = 1;
-		//AudioDecoder.GetCtx()->bit_rate = 16;
-		//AudioDecoder.GetCtx()->sample_rate = 44100;
-
-		//AudioDecoder.SetAudioSettings(1, 16, 44100);
-
-		if(!AudioDecoder.OpenCodec())
-			goto cleanup;
+		TEST(AudioDecoder.GetContextFromStream(AudioStream.Get()));
+		TEST(AudioDecoder.FindDecoder());
+		TEST(AudioDecoder.OpenCodec());
 	}
 
 	///////////////////////////////////////////////////////////////////////////////////////
 
-	if(!VideoEncoder.FindEncoder(CODEC_ID_MPEG1VIDEO))
-		goto cleanup;
-
-	if(!VideoEncoder.AllocContext())
-		goto cleanup;
+	TEST(VideoEncoder.FindEncoder(CODEC_ID_MPEG1VIDEO));
+	TEST(VideoEncoder.AllocContext());
 
 	///////////////////////////////////////////////////////////////////////////////////////
 
 	if(got_audio){
-	
-		if(!AudioEncoder.FindEncoder(AV_CODEC_ID_AAC))
-			goto cleanup;
-
-		if(!AudioEncoder.AllocContext())
-			goto cleanup;
+		TEST(AudioEncoder.FindEncoder(AV_CODEC_ID_AAC));
+		TEST(AudioEncoder.AllocContext());
 	}
 
 	///////////////////////////////////////////////////////////////////////////////////////
@@ -171,7 +153,7 @@ UINT CVideoConverter::ConvertVideo(char *in, char *out, CRenderer *pRenderer, CT
 	int dw = sw;
 	int dh = sh;
 
-	AdjustSize(dw, dh, 1024, 16);
+	AdjustFrameSize(dw, dh, 1024, 16);
 
 	AVPixelFormat sf = VideoDecoder.GetPixelFormat();
 	AVPixelFormat df = AV_PIX_FMT_YUV420P;
@@ -185,8 +167,7 @@ UINT CVideoConverter::ConvertVideo(char *in, char *out, CRenderer *pRenderer, CT
 	VideoEncoder.SetGopSize(10);
 	VideoEncoder.SetMaxBFrames(1);
 
-	if(!VideoEncoder.OpenCodec())
-		goto cleanup;
+	TEST(VideoEncoder.OpenCodec());
 
 	///////////////////////////////////////////////////////////////////////////////////////
 
@@ -198,45 +179,33 @@ UINT CVideoConverter::ConvertVideo(char *in, char *out, CRenderer *pRenderer, CT
 		AudioEncoder.GetCtx()->sample_fmt     = AV_SAMPLE_FMT_S16;
 		AudioEncoder.GetCtx()->channel_layout = AV_CH_LAYOUT_MONO;
 
-		if(!AudioEncoder.OpenCodec())
-			goto cleanup;
+		TEST(AudioEncoder.OpenCodec());
 	}
 
 	///////////////////////////////////////////////////////////////////////////////////////
 
-	if(!SndFrame.Alloc())
-		goto cleanup;
-
-	if(!SrcFrame.Alloc())
-		goto cleanup;
-
-	if(!DstFrame.Alloc())
-		goto cleanup;
+	TEST(SndFrame.Alloc());
+	TEST(SrcFrame.Alloc());
+	TEST(DstFrame.Alloc());
 
 	///////////////////////////////////////////////////////////////////////////////////////
 
-	if(!FrameBuffer.Alloc(dw, dh))
-		goto cleanup;
+	TEST(FrameBuffer.Alloc(dw, dh));
 
 	DstFrame.SetupFrameBuffer(FrameBuffer.Get(), dw, dh, df);
 
     ///////////////////////////////////////////////////////////////////////////////////////
 
-	if(!DecoderPacket.Alloc())
-		goto cleanup;
-
-	if(!EncoderPacket.Alloc())
-		goto cleanup;
+	TEST(DecoderPacket.Alloc());
+	TEST(EncoderPacket.Alloc());
 	
     ///////////////////////////////////////////////////////////////////////////////////////
 
-	if(!ConvertContext.GetContext(sw, sh, sf, dw, dh, df))
-		goto cleanup;
+	TEST(ConvertContext.GetContext(sw, sh, sf, dw, dh, df));
 
 	///////////////////////////////////////////////////////////////////////////////////////
 
-	if(!pRenderer->CreateTexture(dw, dh, 4))
-		goto cleanup;
+	TEST(pRenderer->CreateTexture(dw, dh, 4));
 
 	BYTE *y = DstFrame.GetChannel('Y');
 	BYTE *u = DstFrame.GetChannel('U');
@@ -244,76 +213,79 @@ UINT CVideoConverter::ConvertVideo(char *in, char *out, CRenderer *pRenderer, CT
 
 	///////////////////////////////////////////////////////////////////////////////////////
 
-	if(!OutputFile.Create(out))
-		goto cleanup;
+	TEST(OutputFile.Create(out));
 
 	///////////////////////////////////////////////////////////////////////////////////////
 
 	int NumFramesDecoded = 0;
 	int NumFrames = VideoStream.GetNumFrames();
 
-	UpdateProgress(0, NumFrames);
+	UpdateProgress(NumFramesDecoded, NumFrames);
 
 	///////////////////////////////////////////////////////////////////////////////////////
 
-	bool flush = false;
+	bool flushing = false;
 
 	while(1){
 
-		int stream = DecoderPacket.GetStreamIndex();
+		if(Aborted(pThread))
+			goto cleanup;
 
-		///////////////////////////////////////////////////////////////////////////////////////
+		if(Paused(pThread))
+			Throttle(pThread, pRenderer);
 
-		if(!flush){
+		if(!flushing){
 			bool res = FormatContext.ReadFrame(DecoderPacket.Get());
 			if(!res)
-				goto cleanup;
+				flushing = true;
 		}
 
-		///////////////////////////////////////////////////////////////////////////////////////
+		int stream = !flushing ? DecoderPacket.GetStreamIndex() : video_stream;
 
-		int got_frame = 0;
 		if(stream == video_stream){
-			if(!DecodeVideo(VideoDecoder.GetCtx(), SrcFrame.Get(), DecoderPacket.Get(), got_frame))
-				goto cleanup;
-		} else if(stream == audio_stream && got_audio){
-			if(!DecodeAudio(AudioDecoder.GetCtx(), SndFrame.Get(), DecoderPacket.Get(), got_frame))
-				goto cleanup;
-		}
 
-		///////////////////////////////////////////////////////////////////////////////////////
-
-		if(got_frame){
-		
+			int got_frame = 0;
 			if(stream == video_stream){
-				ScaleFrame(sh);
-				RenderFrame(pRenderer, y,u,v);
+				TEST(DecodeVideo(VideoDecoder.GetCtx(), SrcFrame.Get(), DecoderPacket.Get(), &got_frame));
+			} else {
+				TEST(DecodeAudio(AudioDecoder.GetCtx(), SndFrame.Get(), DecoderPacket.Get(), &got_frame));
 			}
 
-			EncoderPacket.Reset();
+			if(!got_frame && flushing)
+				break;
 
-			int got_output = 0;
-			if(stream == video_stream){
-				if(!EncodeVideo(VideoEncoder.GetCtx(), DstFrame.Get(), EncoderPacket.Get(), got_output))
-					goto cleanup;
-			} else if(stream == audio_stream && got_audio){
-				if(!EncodeAudio(AudioEncoder.GetCtx(), SndFrame.Get(), EncoderPacket.Get(), got_output))
-					goto cleanup;
+			if(got_frame){
+
+				NumFramesDecoded++;
+
+				if(stream == video_stream){
+					ScaleFrame(sh);
+					RenderFrame(pRenderer, y,u,v);
+				}
+
+				EncoderPacket.Reset();
+
+				int got_output = 0;
+				if(stream == video_stream){
+					TEST(EncodeVideo(VideoEncoder.GetCtx(), DstFrame.Get(), EncoderPacket.Get(), &got_output));
+				} else {
+					TEST(EncodeAudio(AudioEncoder.GetCtx(), SndFrame.Get(), EncoderPacket.Get(), &got_output));
+				}
+
+				if(got_output){
+
+					WriteFrame(EncoderPacket.Get());
+					EncoderPacket.FreePacket();
+
+					if(stream == video_stream)
+						UpdateProgress(NumFramesDecoded, NumFrames);
+				}
 			}
 
-			if(got_output){
-				WriteFrame(EncoderPacket.Get());
-				UpdateProgress(NumFrames, NumFramesDecoded);
-				EncoderPacket.FreePacket();
-			}
-
-		} else if(flush){
-			DecoderPacket.FreePacket();
-			break;
 		}
 
 		DecoderPacket.FreePacket();
-    }
+	}
 
 	///////////////////////////////////////////////////////////////////////////////////////
 	res = JOB_SUCCEDED;
@@ -325,7 +297,7 @@ cleanup:
 
 	if(pRenderer){
 		pRenderer->DeleteTexture();
-		//pRenderer->Render();
+		pRenderer->Render();
 	}
 
 	Cleanup();
@@ -337,37 +309,37 @@ cleanup:
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-bool CVideoConverter::DecodeVideo(AVCodecContext* ctx, AVFrame* frame, AVPacket* pkt, int &got_frame)
+bool CVideoConverter::DecodeVideo(AVCodecContext* ctx, AVFrame* frame, AVPacket* pkt, int *got_frame)
 {
-	got_frame = 0;
-	int res = avcodec_decode_video2(ctx, frame, &got_frame, pkt);
+	*got_frame = 0;
+	int res = avcodec_decode_video2(ctx, frame, got_frame, pkt);
 	return res >= 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-bool CVideoConverter::DecodeAudio(AVCodecContext* ctx, AVFrame* frame, AVPacket* pkt, int &got_frame)
+bool CVideoConverter::DecodeAudio(AVCodecContext* ctx, AVFrame* frame, AVPacket* pkt, int *got_frame)
 {
-	got_frame = 0;
-	int res = avcodec_decode_audio4(ctx, frame, &got_frame, pkt);
+	*got_frame = 0;
+	int res = avcodec_decode_audio4(ctx, frame, got_frame, pkt);
 	return res >= 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-bool CVideoConverter::EncodeVideo(AVCodecContext* ctx, AVFrame* frame, AVPacket* pkt, int &got_frame)
+bool CVideoConverter::EncodeVideo(AVCodecContext* ctx, AVFrame* frame, AVPacket* pkt, int *got_output)
 {
-	got_frame = 0;
-	int res = avcodec_encode_video2(ctx, pkt, frame, &got_frame);
+	*got_output = 0;
+	int res = avcodec_encode_video2(ctx, pkt, frame, got_output);
 	return res >= 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-bool CVideoConverter::EncodeAudio(AVCodecContext* ctx, AVFrame* frame, AVPacket* pkt, int &got_frame)
+bool CVideoConverter::EncodeAudio(AVCodecContext* ctx, AVFrame* frame, AVPacket* pkt, int *got_output)
 {
-	got_frame = 0;
-	int res = avcodec_encode_audio2(ctx, pkt, frame, &got_frame);
+	*got_output = 0;
+	int res = avcodec_encode_audio2(ctx, pkt, frame, got_output);
 	return res >= 0;
 }
 
@@ -412,5 +384,51 @@ bool CVideoConverter::CloseOutputFile()
 	}
 
 	return res;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+bool CVideoConverter::Aborted(CThread *pThread)
+{
+	if(pThread)
+		return pThread->Aborted();
+
+	return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+bool CVideoConverter::Paused(CThread *pThread)
+{
+	if(pThread)
+		return pThread->Paused();
+
+	return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+bool CVideoConverter::Throttle(CThread *pThread, CRenderer *pRenderer)
+{
+	if(!pThread)
+		return false;
+
+	while(1){
+	
+		if(Aborted(pThread))
+			return false;
+	
+		if(!Paused(pThread))
+			break;
+		
+		if(pRenderer)
+			pRenderer->Render();
+		
+		Sleep(16);
+	}
+
+	return true;
 }
 

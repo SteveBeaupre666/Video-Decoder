@@ -24,7 +24,7 @@
 #define DECODE_VIDEO 0
 #define ENCODE_VIDEO 1
 //----------------------------------------------------------------------//
-#define USE_OLD_CODE
+//#define USE_OLD_CODE
 //----------------------------------------------------------------------//
 //#define TEST(x)	if(!x){goto cleanup;}
 //----------------------------------------------------------------------//
@@ -99,29 +99,3 @@ void EXP_FUNC _AbortThread();
 void EXP_FUNC _PauseThread();
 
 UINT EXP_FUNC _ConvertVideo(char *input_fname, char *output_fname);
-
-//----------------------------------------------------------------------//
-// Globals Functions
-//----------------------------------------------------------------------//
-
-bool DecodeFrames(DecodeFramesParams *params);
-
-bool DecodeVideo(AVCodecContext *ctx, AVFrame *frame, AVPacket *pkt, int *got_frame);
-bool EncodeVideo(AVCodecContext *ctx, AVFrame *frame, AVPacket *pkt, int *got_frame);
-
-int IncrementFrameCounter(int *frame_counter);
-
-int CalcFrameBufferSize(int w, int h);
-
-bool CheckThreadSignals();
-
-void SetAlignment(int &w, int &h, int n);
-void SetSizeLimit(int &w, int &h, int limit);
-
-bool WritePacket(CFileIO *f, AVPacket *pkt);
-void CloseOutputFile(CFileIO &OutputFile);
-
-void PostConvertionDoneMsg(bool canceled);
-void UpdateProgress(int frame, int frames_count);
-
-void WriteEndCode(CFileIO &OutputFile);

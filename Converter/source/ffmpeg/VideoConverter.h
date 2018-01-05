@@ -21,6 +21,8 @@
 #define JOB_SUCCEDED	0x00000000
 #define UNKNOW_ERROR	0xFFFFFFFF
 //----------------------------------------------------------------------//
+#define TEST(x)	if(!x){goto cleanup;}
+//----------------------------------------------------------------------//
 
 class CVideoConverter {
 public:
@@ -28,6 +30,7 @@ public:
 	~CVideoConverter();
 private:
 	HWND hMainWnd;
+	HWND hRenderWnd;
 private:
 	COutputFile  OutputFile;
 	CFrameBuffer FrameBuffer;
@@ -53,21 +56,25 @@ private:
 	void Initialize();
 	void Cleanup();
 private:
-	void SetMainWindow(HWND hWnd);
-	void UpdateProgress(int frame, int total);
-
-	void AdjustSize(int &w, int &h, int max = 0, int align = 0);
+	void AdjustFrameSize(int &w, int &h, int max = 0, int align = 0);
 
 	void ScaleFrame(int h);
 	void RenderFrame(CRenderer* pRenderer, BYTE *y, BYTE *u, BYTE *v);
 
-	bool DecodeVideo(AVCodecContext* ctx, AVFrame* frame, AVPacket* pkt, int &got_frame);
-	bool DecodeAudio(AVCodecContext* ctx, AVFrame* frame, AVPacket* pkt, int &got_frame);
-	bool EncodeVideo(AVCodecContext* ctx, AVFrame* frame, AVPacket* pkt, int &got_frame);
-	bool EncodeAudio(AVCodecContext* ctx, AVFrame* frame, AVPacket* pkt, int &got_frame);
+	void UpdateProgress(int frame, int num_frames);
+
+	bool DecodeVideo(AVCodecContext* ctx, AVFrame* frame, AVPacket* pkt, int *got_frame);
+	bool DecodeAudio(AVCodecContext* ctx, AVFrame* frame, AVPacket* pkt, int *got_frame);
+	bool EncodeVideo(AVCodecContext* ctx, AVFrame* frame, AVPacket* pkt, int *got_output);
+	bool EncodeAudio(AVCodecContext* ctx, AVFrame* frame, AVPacket* pkt, int *got_output);
+
+	bool Aborted(CThread *pThread);
+	bool Paused(CThread *pThread);
+	bool Throttle(CThread *pThread, CRenderer *pRenderer);
 
 	bool WriteFrame(AVPacket *pkt);
 	bool CloseOutputFile();
 public:
+	void SetWindow(HWND hWnd);
 	UINT ConvertVideo(char *in, char *out, CRenderer *pRenderer, CThread *pThread);
 };
