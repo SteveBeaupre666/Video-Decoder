@@ -125,41 +125,58 @@ int CCodecContext::GetFrameHeight()
 	return CodecCtx->height;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////
-
-void CCodecContext::SetupDecoder()
+AVPixelFormat CCodecContext::GetPixelFormat()
 {
-	/*
-	int src_width  = VideoDecoder->codec_ctx->width;
-	int src_height = VideoDecoder->codec_ctx->height;
+	if(!CodecCtx)
+		return AV_PIX_FMT_NONE;
 
-	int dst_width  = src_width;
-	int dst_height = src_height;
-
-	SetSizeLimit(dst_width, dst_height, 1024);
-	SetAlignment(dst_width, dst_height, 16);
-
-	AVPixelFormat dst_format = AV_PIX_FMT_YUV420P;
-	AVPixelFormat src_format = VideoDecoder->codec_ctx->pix_fmt;
-	
-	*/
+	return CodecCtx->pix_fmt;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
 
-void CCodecContext::SetupEncoder()
+void CCodecContext::SetSize(int w, int h)
 {
-	/*
-	CodecCtx->width  = width;
-	CodecCtx->height = height;
+	if(CodecCtx){
+		CodecCtx->width  = w;
+		CodecCtx->height = h;
+	}
+}
 
-	CodecCtx->bit_rate  = bitrate;
-	CodecCtx->time_base = framerate;
+void CCodecContext::SetFormat(AVPixelFormat fmt)
+{
+	if(CodecCtx)
+		CodecCtx->pix_fmt = fmt;
+}
 
-	CodecCtx->pix_fmt      = pix_fmt;
-	CodecCtx->gop_size     = gop_size;
-	CodecCtx->max_b_frames = max_b_frames;
-	*/
+void CCodecContext::SetBitrate(int bitrate)
+{
+	if(CodecCtx)
+		CodecCtx->bit_rate = bitrate;
+}
+
+void CCodecContext::SetFramerate(int num, int den)
+{
+	if(CodecCtx){
+
+		AVRational framerate;
+		framerate.num = num;
+		framerate.den = den;
+
+		CodecCtx->time_base = framerate;
+	}
+}
+
+void CCodecContext::SetGopSize(int gop_size)
+{
+	if(CodecCtx)
+		CodecCtx->gop_size = gop_size;
+}
+
+void CCodecContext::SetMaxBFrames(int max_b_frames)
+{
+	if(CodecCtx)
+		CodecCtx->max_b_frames = max_b_frames;
 }

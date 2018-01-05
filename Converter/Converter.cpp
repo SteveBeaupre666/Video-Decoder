@@ -214,6 +214,9 @@ UINT EXP_FUNC _ConvertVideo(char *input_fname, char *output_fname)
 	CPacket DecoderPacket;
 	CPacket EncoderPacket;
 
+	CStream VideoStream;
+	CStream AudioStream;
+
 	CCodecContext VideoDecoder;
 	CCodecContext VideoEncoder;
 
@@ -233,15 +236,15 @@ UINT EXP_FUNC _ConvertVideo(char *input_fname, char *output_fname)
 
     ///////////////////////////////////////////////////////////////////////////////////////
 
-	int video_stream = FormatContext.FindStream(AVMEDIA_TYPE_VIDEO);
-	AVStream* stream = FormatContext.GetStream(AVMEDIA_TYPE_VIDEO);
+	VideoStream.FindVideoStream(FormatContext.GetCtx());
+	AudioStream.FindAudioStream(FormatContext.GetCtx());
 
-	if(!stream || video_stream == INVALID_STREAM)
+	if(VideoStream.GetIndex() == INVALID_STREAM)
 		goto cleanup;
 
     ///////////////////////////////////////////////////////////////////////////////////////
 
-	if(!VideoDecoder.GetContextFromStream(stream))
+	if(!VideoDecoder.GetContextFromStream(VideoStream.Get()))
 		goto cleanup;
 
 	if(!VideoDecoder.FindDecoder())
@@ -266,24 +269,20 @@ UINT EXP_FUNC _ConvertVideo(char *input_fname, char *output_fname)
 	int dw = sw;
 	int dh = sh;
 
-	SetSizeLimit(dw, dh, 1024);   // Set Width/Height limit
-	SetAlignment(dw, dh, 16);     // Force 16 bytes alignment
+	SetSizeLimit(dw, dh, 1024);
+	SetAlignment(dw, dh, 16);
 
-	AVPixelFormat sf = VideoDecoder.GetCtx()->pix_fmt;
+	AVPixelFormat sf = VideoDecoder.GetPixelFormat();
 	AVPixelFormat df = AV_PIX_FMT_YUV420P;
 
 	///////////////////////////////////////////////////////////////////////////////////////
 
-	VideoEncoder.GetCtx()->gop_size = 10;
-	VideoEncoder.GetCtx()->max_b_frames = 1;
-
-	VideoEncoder.GetCtx()->bit_rate  = 2000000;
-	VideoEncoder.GetCtx()->time_base = MakeRatio(1, 25);
-
-	VideoEncoder.GetCtx()->width  = dw;
-	VideoEncoder.GetCtx()->height = dh;
-
-	VideoEncoder.GetCtx()->pix_fmt = df;
+	VideoEncoder.SetFormat(df);
+	VideoEncoder.SetSize(dw, dh);
+	VideoEncoder.SetBitrate(2000000);
+	VideoEncoder.SetFramerate(1, 25);
+	VideoEncoder.SetGopSize(10);
+	VideoEncoder.SetMaxBFrames(1);
 
 	if(!VideoEncoder.OpenCodec())
 		goto cleanup;
@@ -331,8 +330,8 @@ UINT EXP_FUNC _ConvertVideo(char *input_fname, char *output_fname)
 
 	///////////////////////////////////////////////////////////////////////////////////////
 
-	int frame = 1;
-	int frames_count = (int)stream->nb_frames;
+	int frame = 0;
+	int frames_count = VideoStream.GetNumFrames();
 
 	UpdateProgress(0, frames_count);
 
@@ -340,7 +339,7 @@ UINT EXP_FUNC _ConvertVideo(char *input_fname, char *output_fname)
 
 	while(FormatContext.ReadFrame(DecoderPacket.Get())){
 
-		if(!Decode(OutputFile, SrcFrame, DstFrame, DecoderPacket, EncoderPacket, ConvertContext, VideoDecoder, VideoEncoder, frame, frames_count, video_stream, sh, y, u, v, false))
+		if(!DecodeFrames(OutputFile, SrcFrame, DstFrame, DecoderPacket, EncoderPacket, ConvertContext, VideoDecoder, VideoEncoder, frame, frames_count, VideoStream.GetIndex(), sh, y, u, v, false))
 			goto cleanup;
 
 		DecoderPacket.FreePacket();
@@ -350,7 +349,7 @@ UINT EXP_FUNC _ConvertVideo(char *input_fname, char *output_fname)
 
 	while(1){
 
-		if(!Decode(OutputFile, SrcFrame, DstFrame, DecoderPacket, EncoderPacket, ConvertContext, VideoDecoder, VideoEncoder, frame, frames_count, video_stream, sh, y, u, v, true))
+		if(!DecodeFrames(OutputFile, SrcFrame, DstFrame, DecoderPacket, EncoderPacket, ConvertContext, VideoDecoder, VideoEncoder, frame, frames_count, VideoStream.GetIndex(), sh, y, u, v, true))
 			goto cleanup;
 
 		DecoderPacket.FreePacket();
@@ -360,17 +359,14 @@ UINT EXP_FUNC _ConvertVideo(char *input_fname, char *output_fname)
 
 	res = JOB_SUCCEDED;
 
-	///////////////////////////////////////////////////////////////////////////////////////
-
 cleanup:
 
-	// Write 32 bits "End code" and close the file...
 	WriteEndCode(OutputFile);
+	OutputFile.Close();
 
 	Renderer.DeleteTexture();
 	//Renderer.Render();
 
-	// Cleanup everything
 	FrameBuffer.Free();
 
 	SrcFrame.Free();
@@ -386,17 +382,6 @@ cleanup:
 	ConvertContext.FreeContext();
 
 	return res;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////
-
-void WriteEndCode(CFileIO &OutputFile)
-{
-	if(OutputFile.IsOpened()){
-		DWORD EndCode = 0x000001B7;
-		OutputFile.Write(&EndCode, sizeof(DWORD));
-		OutputFile.Close();
-	}
 }
 #endif
 
@@ -568,7 +553,7 @@ cleanup:
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-bool Decode(CFileIO &OutputFile, CFrame &SrcFrame, CFrame &DstFrame, CPacket &DecoderPacket, CPacket &EncoderPacket, CConvertContext &ConvertContext, CCodecContext &VideoDecoder, CCodecContext &VideoEncoder, int &frame, int frames_count, int video_stream, int src_height, BYTE *y, BYTE *u, BYTE *v, bool flushing)
+bool DecodeFrames(CFileIO &OutputFile, CFrame &SrcFrame, CFrame &DstFrame, CPacket &DecoderPacket, CPacket &EncoderPacket, CConvertContext &ConvertContext, CCodecContext &VideoDecoder, CCodecContext &VideoEncoder, int &frame, int frames_count, int video_stream, int src_height, BYTE *y, BYTE *u, BYTE *v, bool flushing)
 {
 	int stream_index = DecoderPacket.GetStreamIndex();
 
@@ -581,7 +566,7 @@ bool Decode(CFileIO &OutputFile, CFrame &SrcFrame, CFrame &DstFrame, CPacket &De
 		if(!DecodeVideo(VideoDecoder.GetCtx(), SrcFrame.Get(), DecoderPacket.Get(), &got_frame))
 			return false;
 
-		if(!got_frame && flushing)
+		if(flushing && !got_frame)
 			return false;
 
 		if(got_frame){
@@ -613,45 +598,22 @@ bool Decode(CFileIO &OutputFile, CFrame &SrcFrame, CFrame &DstFrame, CPacket &De
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-bool xxcodeVideo(AVCodecContext *ctx, AVFrame *frame, AVPacket *pkt, int *got_frame, int mode)
-{
-	int res = 0;
-
-	switch(mode)
-	{
-	case DECODE_VIDEO: res = avcodec_decode_video2(ctx, frame, got_frame, pkt); break;
-	case ENCODE_VIDEO: res = avcodec_encode_video2(ctx, pkt, frame, got_frame); break;
-	}
-	
-	return res >= 0;
-}
-
-///////////////////////////////////////////////////////////////////////////////////////////////
-
 bool DecodeVideo(AVCodecContext *ctx, AVFrame *frame, AVPacket *pkt, int *got_frame)
 {
-	return xxcodeVideo(ctx, frame, pkt, got_frame, DECODE_VIDEO);
+	int res = avcodec_decode_video2(ctx, frame, got_frame, pkt);
+	return res >= 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 bool EncodeVideo(AVCodecContext *ctx, AVFrame *frame, AVPacket *pkt, int *got_frame)
 {
-	return xxcodeVideo(ctx, frame, pkt, got_frame, ENCODE_VIDEO);
+	int res = avcodec_encode_video2(ctx, pkt, frame, got_frame);
+	return res >= 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////
-
-AVRational MakeRatio(int num, int den)
-{
-	AVRational ratio;
-	ratio.num = num;
-	ratio.den = den;
-	return ratio;
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
 int CalcFrameBufferSize(int w, int h)
@@ -689,11 +651,20 @@ void SetSizeLimit(int &w, int &h, int limit)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-bool WritePacket(CFileIO &File, CPacket &Packet)
+bool WritePacket(CFileIO &OutputFile, CPacket &Packet)
 {
 	AVPacket* pkt = (AVPacket*)Packet.Get();
+	return OutputFile.Write(pkt->data, pkt->size);
+}
 
-	return File.Write(pkt->data, pkt->size);
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+void WriteEndCode(CFileIO &OutputFile)
+{
+	if(OutputFile.IsOpened()){
+		DWORD EndCode = 0x000001B7;
+		OutputFile.Write(&EndCode, sizeof(DWORD));
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////

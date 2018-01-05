@@ -26,9 +26,17 @@ public:
 	bool FindDecoder();
 	bool FindEncoder(AVCodecID id);
 
-	void SetupDecoder();
-	void SetupEncoder();
-
 	int  GetFrameWidth();
 	int  GetFrameHeight();
+	
+	AVPixelFormat GetPixelFormat();
+
+	void SetSize(int w, int h);
+	void SetFormat(AVPixelFormat fmt);
+
+	void SetBitrate(int bitrate);
+	void SetFramerate(int num, int den);
+
+	void SetGopSize(int gop_size);
+	void SetMaxBFrames(int max_b_frames);
 };

@@ -48,36 +48,6 @@ bool CFormatContext::FindStreamInfo()
 	return res >= 0;
 }
 
-int CFormatContext::GetNumStreams()
-{
-	return (int)FormatCtx->nb_streams;
-}
-
-int CFormatContext::FindStream(AVMediaType type)
-{
-	if(type != AVMEDIA_TYPE_VIDEO && type != AVMEDIA_TYPE_AUDIO)
-		return INVALID_STREAM;
-
-	int n = GetNumStreams();
-	for(int i = 0; i < n; i++){
-		if(FormatCtx->streams[i]->codec->codec_type == type)
-			return i;
-	}
-
-	return INVALID_STREAM;
-}
-
-AVStream* CFormatContext::GetStream(AVMediaType type)
-{
-	int i = FindStream(type);
-	int n = GetNumStreams();
-
-	if(i == INVALID_STREAM || i >= n)
-		return NULL;
-	
-	return FormatCtx->streams[i];
-}
-
 bool CFormatContext::ReadFrame(AVPacket* pkt)
 {
 	int res = av_read_frame(FormatCtx, pkt);

@@ -11,7 +11,6 @@ public:
 	~CFormatContext();
 private:
 	AVFormatContext* FormatCtx;
-private:
 public:
 	AVFormatContext* GetCtx();
 	
@@ -22,14 +21,6 @@ public:
 	void CloseInput();
 
 	bool FindStreamInfo();
-
-	int GetNumStreams();
-
-	int FindStream(AVMediaType type);
-	AVStream* GetStream(AVMediaType type);
-
-	AVStream* GetVideoStream();
-	AVStream* GetAudioStream();
 
 	bool ReadFrame(AVPacket* pkt);
 };

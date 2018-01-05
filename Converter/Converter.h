@@ -15,6 +15,7 @@
 //----------------------------------------------------------------------//
 #include "Frame.h"
 #include "Packet.h"
+#include "Stream.h"
 //----------------------------------------------------------------------//
 #include "CodecContext.h"
 #include "FormatContext.h"
@@ -83,13 +84,11 @@ UINT EXP_FUNC _ConvertVideo(char *input_fname, char *output_fname);
 // Globals Functions
 //----------------------------------------------------------------------//
 
-bool Decode(CFileIO &OutputFile, CFrame &SrcFrame, CFrame &DstFrame, CPacket &DecoderPacket, CPacket &EncoderPacket, CConvertContext &ConvertContext, CCodecContext &VideoDecoder, CCodecContext &VideoEncoder, int &frame, int frames_count, int video_stream, int src_height, BYTE *y, BYTE *u, BYTE *v, bool flushing);
+bool DecodeFrames(CFileIO &OutputFile, CFrame &SrcFrame, CFrame &DstFrame, CPacket &DecoderPacket, CPacket &EncoderPacket, CConvertContext &ConvertContext, CCodecContext &VideoDecoder, CCodecContext &VideoEncoder, int &frame, int frames_count, int video_stream, int src_height, BYTE *y, BYTE *u, BYTE *v, bool flushing);
 
-bool xxcodeVideo(AVCodecContext *ctx, AVFrame *frame, AVPacket *pkt, int *got_frame, int mode);
 bool DecodeVideo(AVCodecContext *ctx, AVFrame *frame, AVPacket *pkt, int *got_frame);
 bool EncodeVideo(AVCodecContext *ctx, AVFrame *frame, AVPacket *pkt, int *got_frame);
 
-AVRational MakeRatio(int num, int den);
 int CalcFrameBufferSize(int w, int h);
 
 bool CheckThreadSignals();
@@ -97,12 +96,10 @@ bool CheckThreadSignals();
 void SetAlignment(int &w, int &h, int n);
 void SetSizeLimit(int &w, int &h, int limit);
 
-bool WritePacket(CFileIO &File, CPacket &Packet);
+bool WritePacket(CFileIO &OutputFile, CPacket &Packet);
 void CloseOutputFile(CFileIO &OutputFile);
 
 void PostConvertionDoneMsg(bool canceled);
 void UpdateProgress(int frame, int frames_count);
 
-#ifdef USE_OLD_CODE
 void WriteEndCode(CFileIO &OutputFile);
-#endif
