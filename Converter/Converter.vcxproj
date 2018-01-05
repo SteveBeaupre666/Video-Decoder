@@ -81,8 +81,11 @@
     <ClCompile Include="source\ffmpeg\ConvertContext.cpp" />
     <ClCompile Include="source\ffmpeg\FormatContext.cpp" />
     <ClCompile Include="source\ffmpeg\Frame.cpp" />
+    <ClCompile Include="source\ffmpeg\FrameBuffer.cpp" />
+    <ClCompile Include="source\ffmpeg\OutputFile.cpp" />
     <ClCompile Include="source\ffmpeg\Packet.cpp" />
     <ClCompile Include="source\ffmpeg\Stream.cpp" />
+    <ClCompile Include="source\ffmpeg\VideoConverter.cpp" />
     <ClCompile Include="source\Misc\ColorConversion.cpp" />
     <ClCompile Include="source\Misc\FileName.cpp" />
     <ClCompile Include="source\OpenGL\Renderer.cpp" />
@@ -101,8 +104,11 @@
     <ClInclude Include="source\ffmpeg\ffmpeg.h" />
     <ClInclude Include="source\ffmpeg\FormatContext.h" />
     <ClInclude Include="source\ffmpeg\Frame.h" />
+    <ClInclude Include="source\ffmpeg\FrameBuffer.h" />
+    <ClInclude Include="source\ffmpeg\OutputFile.h" />
     <ClInclude Include="source\ffmpeg\Packet.h" />
     <ClInclude Include="source\ffmpeg\Stream.h" />
+    <ClInclude Include="source\ffmpeg\VideoConverter.h" />
     <ClInclude Include="source\Misc\ColorConversion.h" />
     <ClInclude Include="source\Misc\FileName.h" />
     <ClInclude Include="source\Misc\Rectangle.h" />

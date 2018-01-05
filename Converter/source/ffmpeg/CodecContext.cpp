@@ -180,3 +180,12 @@ void CCodecContext::SetMaxBFrames(int max_b_frames)
 	if(CodecCtx)
 		CodecCtx->max_b_frames = max_b_frames;
 }
+
+void CCodecContext::SetAudioSettings(int num_channels, int bitrate, int sample_rate)
+{
+	if(CodecCtx){
+		CodecCtx->channels    = num_channels;
+		CodecCtx->bit_rate    = bitrate;
+		CodecCtx->sample_rate = sample_rate;
+	}
+}

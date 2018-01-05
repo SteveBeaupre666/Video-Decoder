@@ -46,6 +46,12 @@ void CPacket::Free()
 	Initialize();
 }
 
+void CPacket::Reset()
+{
+	InitPacket();
+	SetBuffer(NULL, 0);
+}
+
 void CPacket::InitPacket()
 {
 	if(Packet)

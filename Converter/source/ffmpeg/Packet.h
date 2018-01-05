@@ -17,6 +17,8 @@ public:
 	bool Alloc();
 	void Free();
 
+	void Reset();
+
 	void InitPacket();
 	void SetBuffer(void *buf, int size);
 	void FreePacket();

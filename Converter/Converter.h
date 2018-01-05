@@ -7,27 +7,13 @@
 #include <Windows.h>
 #include <stdio.h>
 //----------------------------------------------------------------------//
-#include "Buffer.h"
-#include "FileIO.h"
-#include "Thread.h"
-#include "Renderer.h"
 #include "FileName.h"
 //----------------------------------------------------------------------//
-#include "Frame.h"
-#include "Packet.h"
-#include "Stream.h"
-//----------------------------------------------------------------------//
-#include "CodecContext.h"
-#include "FormatContext.h"
-#include "ConvertContext.h"
+#include "VideoConverter.h"
 //----------------------------------------------------------------------//
 #include "SafeKill.h"
 //----------------------------------------------------------------------//
 #define MULTITHREADED
-//----------------------------------------------------------------------//
-#define JOB_CANCELED	0x00000001
-#define JOB_SUCCEDED	0x00000000
-#define UNKNOW_ERROR	0xFFFFFFFF
 //----------------------------------------------------------------------//
 #define WM_UPDATE_PROGRESS		WM_USER + 101
 #define WM_THREAD_TERMINATED	WM_USER + 102
@@ -53,6 +39,40 @@ struct JobDataStruct {
 	char *OutputFiles;
 };
 	
+struct DecodeFramesParams {
+
+	CFileIO *OutputFile;
+
+	CFrame *SndFrame;
+	CFrame *SrcFrame;
+	CFrame *DstFrame;
+
+	CPacket *DecoderPacket;
+	CPacket *EncoderPacket;
+
+	CStream *VideoStream;
+	CStream *AudioStream;
+
+	CCodecContext *VideoDecoder;
+	CCodecContext *VideoEncoder;
+
+	CCodecContext *AudioDecoder;
+	CCodecContext *AudioEncoder;
+
+	CConvertContext *ConvertContext;
+
+	BYTE *y;
+	BYTE *u;
+	BYTE *v;
+
+	int *frame;
+	int  frames_count;
+
+	int  src_height;
+
+	bool *flushing;
+};
+
 //----------------------------------------------------------------------//
 // Internal Functions
 //----------------------------------------------------------------------//
@@ -84,10 +104,12 @@ UINT EXP_FUNC _ConvertVideo(char *input_fname, char *output_fname);
 // Globals Functions
 //----------------------------------------------------------------------//
 
-bool DecodeFrames(CFileIO &OutputFile, CFrame &SrcFrame, CFrame &DstFrame, CPacket &DecoderPacket, CPacket &EncoderPacket, CConvertContext &ConvertContext, CCodecContext &VideoDecoder, CCodecContext &VideoEncoder, int &frame, int frames_count, int video_stream, int src_height, BYTE *y, BYTE *u, BYTE *v, bool flushing);
+bool DecodeFrames(DecodeFramesParams *params);
 
 bool DecodeVideo(AVCodecContext *ctx, AVFrame *frame, AVPacket *pkt, int *got_frame);
 bool EncodeVideo(AVCodecContext *ctx, AVFrame *frame, AVPacket *pkt, int *got_frame);
+
+int IncrementFrameCounter(int *frame_counter);
 
 int CalcFrameBufferSize(int w, int h);
 
@@ -96,7 +118,7 @@ bool CheckThreadSignals();
 void SetAlignment(int &w, int &h, int n);
 void SetSizeLimit(int &w, int &h, int limit);
 
-bool WritePacket(CFileIO &OutputFile, CPacket &Packet);
+bool WritePacket(CFileIO *f, AVPacket *pkt);
 void CloseOutputFile(CFileIO &OutputFile);
 
 void PostConvertionDoneMsg(bool canceled);

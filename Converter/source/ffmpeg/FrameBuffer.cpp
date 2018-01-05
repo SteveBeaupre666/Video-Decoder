@@ -1,0 +1,25 @@
+#include "FrameBuffer.h"
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+int CFrameBuffer::CalcYUVSize(int w, int h)
+{
+	int n = w * h;
+	
+	int y = n;
+	int u = n / 4;
+	int v = n / 4;
+
+	return y + u + v;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+bool CFrameBuffer::Alloc(int w, int h)
+{
+	int size = CalcYUVSize(w, h);
+	return Allocate(size);
+}
+
+
+
