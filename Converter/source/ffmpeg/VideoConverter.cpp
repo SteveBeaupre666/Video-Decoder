@@ -125,7 +125,7 @@ UINT CVideoConverter::ConvertVideo(char *in, char *out, CRenderer *pRenderer, CT
 
     ///////////////////////////////////////////////////////////////////////////////////////
 
-	bool got_audio = false; // audio_stream != INVALID_STREAM;
+	bool got_audio = audio_stream != INVALID_STREAM;
 
 	if(got_audio){
 		TEST(AudioDecoder.GetContextFromStream(AudioStream.Get()));
@@ -245,11 +245,7 @@ UINT CVideoConverter::ConvertVideo(char *in, char *out, CRenderer *pRenderer, CT
 		if(stream == video_stream){
 
 			int got_frame = 0;
-			if(stream == video_stream){
-				TEST(DecodeVideo(VideoDecoder.GetCtx(), SrcFrame.Get(), DecoderPacket.Get(), &got_frame));
-			} else {
-				TEST(DecodeAudio(AudioDecoder.GetCtx(), SndFrame.Get(), DecoderPacket.Get(), &got_frame));
-			}
+			TEST(DecodeVideo(VideoDecoder.GetCtx(), SrcFrame.Get(), DecoderPacket.Get(), &got_frame));
 
 			if(!got_frame && flushing)
 				break;
@@ -257,28 +253,36 @@ UINT CVideoConverter::ConvertVideo(char *in, char *out, CRenderer *pRenderer, CT
 			if(got_frame){
 
 				NumFramesDecoded++;
-
-				if(stream == video_stream){
-					ScaleFrame(sh);
-					RenderFrame(pRenderer, y,u,v);
-				}
+				ScaleFrame(sh);
+				RenderFrame(pRenderer, y,u,v);
 
 				EncoderPacket.Reset();
 
 				int got_output = 0;
-				if(stream == video_stream){
-					TEST(EncodeVideo(VideoEncoder.GetCtx(), DstFrame.Get(), EncoderPacket.Get(), &got_output));
-				} else {
-					TEST(EncodeAudio(AudioEncoder.GetCtx(), SndFrame.Get(), EncoderPacket.Get(), &got_output));
-				}
+				TEST(EncodeVideo(VideoEncoder.GetCtx(), DstFrame.Get(), EncoderPacket.Get(), &got_output));
 
 				if(got_output){
-
+					UpdateProgress(NumFramesDecoded, NumFrames);
 					WriteFrame(EncoderPacket.Get());
 					EncoderPacket.FreePacket();
+				}
+			}
 
-					if(stream == video_stream)
-						UpdateProgress(NumFramesDecoded, NumFrames);
+		} else if(stream == audio_stream){
+
+			int got_frame = 0;
+			TEST(DecodeAudio(AudioDecoder.GetCtx(), SndFrame.Get(), DecoderPacket.Get(), &got_frame));
+
+			if(got_frame){
+
+				EncoderPacket.Reset();
+
+				int got_output = 0;
+				TEST(EncodeAudio(AudioEncoder.GetCtx(), SndFrame.Get(), EncoderPacket.Get(), &got_output));
+
+				if(got_output){
+					WriteFrame(EncoderPacket.Get());
+					EncoderPacket.FreePacket();
 				}
 			}
 
